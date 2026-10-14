@@ -985,26 +985,25 @@
       const delta = clock.getDelta();
       const time = clock.getElapsedTime();
 
-      // Auto-spin
+      // Auto-spin (gentle and smooth)
       if (moleculeGroup && isAutoRotating) {
-        moleculeGroup.rotation.y += 0.008;
-        moleculeGroup.rotation.x = Math.sin(time * 0.3) * 0.15;
+        moleculeGroup.rotation.y += 0.0025;
+        moleculeGroup.rotation.x = Math.sin(time * 0.15) * 0.06;
       }
 
-      // Dynamic Thermal Jitter: Vibration amplitude increases with simulated temperature!
+      // Dynamic Thermal Jitter: gentle atomic vibration linked to temperature
       if (moleculeGroup && isThermalMotionActive && baseAtomPositions.length > 0) {
-        // Normalize temperature [-50°C to 550°C] into amplitude
         const normT = Math.max(0, (currentProbeTemp + 50) / 600);
-        const amp = 0.015 + normT * 0.12;
+        const amp = 0.008 + normT * 0.045; // softer amplitude
 
         let atomIndex = 0;
         moleculeGroup.children.forEach(child => {
           if (child.isMesh && child.geometry.type === 'SphereGeometry' && baseAtomPositions[atomIndex]) {
             const base = baseAtomPositions[atomIndex];
-            const freq = 12.0 + normT * 25.0;
-            child.position.x = base.x + Math.sin(time * freq + atomIndex) * amp;
-            child.position.y = base.y + Math.cos(time * freq + atomIndex * 1.5) * amp;
-            child.position.z = base.z + Math.sin(time * freq * 0.7 + atomIndex) * amp;
+            const freq = 4.0 + normT * 6.0; // relaxed frequency
+            child.position.x = base.x + Math.sin(time * freq + atomIndex * 1.2) * amp;
+            child.position.y = base.y + Math.cos(time * freq * 0.9 + atomIndex * 1.5) * amp;
+            child.position.z = base.z + Math.sin(time * freq * 0.6 + atomIndex) * amp;
             atomIndex++;
           }
         });
@@ -1404,7 +1403,7 @@
 
       // Update 3D badge stats based on temperature
       const normT = Math.max(0, (currentProbeTemp + 50) / 600);
-      const ampVal = (0.015 + normT * 0.12).toFixed(2);
+      const ampVal = (0.008 + normT * 0.045).toFixed(3);
       document.getElementById('vibeAmpDisplay').textContent = `${ampVal} Å`;
 
       const vibeRate = document.getElementById('vibeRateDisplay');
