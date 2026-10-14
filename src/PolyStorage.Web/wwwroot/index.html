@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PolyStorage — Polymer AI Thermal Predictor & Dynamic Phase Visualizer</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            slate: {
+              850: '#111b2e',
+              900: '#0b1324',
+              950: '#060a14',
+            },
+            cyan: {
+              400: '#22d3ee',
+              500: '#06b6d4',
+              600: '#0891b2',
+            },
+            teal: {
+              400: '#2dd4bf',
+              500: '#14b8a6',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom scrollbars & glassmorphism styling */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #060a14; }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #06b6d4; }
+    
+    .glass-card {
+      background: radial-gradient(130% 100% at 50% 0%, rgba(20, 31, 53, 0.72) 0%, rgba(10, 16, 29, 0.85) 100%);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-card-hover {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .glass-card-hover:hover {
+      border-color: rgba(6, 182, 212, 0.45);
+      box-shadow: 0 12px 35px -10px rgba(6, 182, 212, 0.25);
+    }
+    .glow-cyan {
+      box-shadow: 0 0 30px -5px rgba(6, 182, 212, 0.35);
+    }
+    .glow-pulse {
+      animation: pulse-glow 2.5s infinite alternate;
+    }
+    @keyframes pulse-glow {
+      0% { box-shadow: 0 0 15px -3px rgba(6, 182, 212, 0.2); }
+      100% { box-shadow: 0 0 35px 4px rgba(6, 182, 212, 0.55); }
+    }
+    /* Thermal Gauge Track Gradient */
+    .thermal-track {
+      background: linear-gradient(90deg, 
+        #2563eb 0%, 
+        #06b6d4 25%, 
+        #10b981 50%, 
+        #f59e0b 75%, 
+        #ef4444 100%);
+    }
+  </style>
+</head>
+
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col selection:bg-cyan-500 selection:text-slate-950">
+
+  <!-- ==================== HEADER ==================== -->
+  <header class="sticky top-0 z-50 glass-card border-b border-slate-800/80 bg-slate-950/85 backdrop-blur-xl">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        
+        <!-- Logo & Title -->
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-600 via-teal-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/25 glow-cyan">
+            <svg class="w-6 h-6 text-slate-950 stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
+            </svg>
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <h1 class="text-lg font-bold tracking-tight bg-gradient-to-r from-white via-slate-100 to-cyan-300 bg-clip-text text-transparent">
+                PolyStorage
+              </h1>
+              <span class="px-2 py-0.5 text-[10px] font-mono font-semibold uppercase bg-cyan-950 text-cyan-400 border border-cyan-800/60 rounded-full">
+                .NET 10 Engine
+              </span>
+            </div>
+            <p class="text-xs text-slate-400">Polymer Thermal Properties Predictor & Dynamic Phase Visualizer</p>
+          </div>
+        </div>
+
+        <!-- System Stats / Action -->
+        <div class="flex items-center space-x-3">
+          <div class="hidden sm:flex items-center space-x-2 text-xs text-slate-300 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-xl">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span>Model: <strong class="text-cyan-400 font-mono">PolyGNN-v4.2</strong></span>
+          </div>
+          <button onclick="exportQuickJson()" class="p-2 text-slate-300 hover:text-cyan-400 hover:bg-slate-900 rounded-xl border border-slate-800 transition" title="Export Current Prediction JSON">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== MAIN CONTENT AREA ==================== -->
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- TOP ROW: INPUT CONTROL & 2D REPEATING UNIT VISUALIZER -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      
+      <!-- INPUT PANEL (7 Cols) -->
+      <div class="lg:col-span-7 glass-card rounded-2xl p-6 space-y-5 border border-slate-800 relative overflow-hidden">
+        <div class="absolute -top-12 -right-12 w-44 h-44 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="flex items-center justify-between">
+          <h2 class="text-base font-bold text-white flex items-center space-x-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_10px_#22d3ee]"></span>
+            <span>Polymer Structure & Specification</span>
+          </h2>
+          <span class="text-xs text-slate-400 font-mono">PSMILES / SLIMES</span>
+        </div>
+
+        <!-- Preset Selection -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">
+            Industrial Benchmark Presets
+          </label>
+          <div class="relative">
+            <select id="presetSelect" onchange="loadPresetPolymer(this.value)" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition cursor-pointer appearance-none">
+              <option value="ps">Polystyrene (PS) — [*]CC(*)(c1ccccc1)</option>
+              <option value="pmma">Poly(methyl methacrylate) (PMMA) — [*]CC(*)(C)C(=O)OC</option>
+              <option value="pet">Polyethylene Terephthalate (PET) — [*]OC(=O)c1ccc(cc1)C(=O)OCCCC[*]</option>
+              <option value="nylon66">Nylon 6,6 (Polyamide 6,6) — [*]NCCCCCCN[*]C(=O)CCCC(=O)[*]</option>
+              <option value="peek">Polyether Ether Ketone (PEEK) — [*]Oc1ccc(cc1)Oc2ccc(cc2)C(=O)c3ccc(cc3)[*]</option>
+              <option value="pc">Polycarbonate (BPA-PC) — [*]OC(=O)Oc1ccc(cc1)C(C)(C)c2ccc(cc2)[*]</option>
+              <option value="ptfe">Polytetrafluoroethylene (PTFE) — [*]C(F)(F)C(*)(F)F</option>
+              <option value="pp">Isotactic Polypropylene (iPP) — [*]CC(*)(C)</option>
+              <option value="custom">-- Custom User Structure --</option>
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-slate-400">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- PSMILES Input Textarea -->
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label for="psmilesInput" class="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center space-x-1.5">
+              <span>Monomer Repeating PSMILES String</span>
+              <span class="text-cyan-400 font-bold" title="Asterisks indicate repeat linkages">*</span>
+            </label>
+            <button onclick="copyPSMILES()" class="text-xs text-cyan-400 hover:text-cyan-300 flex items-center space-x-1">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h6a2 2 0 012 2v2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"/></svg>
+              <span>Copy</span>
+            </button>
+          </div>
+          <textarea id="psmilesInput" rows="2" oninput="handleCustomInput()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 font-mono text-sm text-cyan-300 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition resize-none shadow-inner" placeholder="e.g. *CC(*)c1ccccc1"></textarea>
+          <div id="smilesValidity" class="mt-1 flex items-center justify-between text-[11px] text-emerald-400 font-mono">
+            <span>✓ Valid PSMILES Notation Detected</span>
+            <span id="starCountTag">2 Terminal Points (*)</span>
+          </div>
+        </div>
+
+        <!-- Parameters: DP, Tacticity, Processing State -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <div class="flex justify-between items-center text-xs text-slate-300 mb-1">
+              <span>Degree of Polymerization (n)</span>
+              <span id="nValDisplay" class="font-mono text-cyan-400 font-bold">120</span>
+            </div>
+            <input type="range" id="nSlider" min="10" max="500" value="120" oninput="updateDP(this.value)" class="w-full accent-cyan-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+          </div>
+
+          <div>
+            <label class="block text-xs text-slate-300 mb-1">Tacticity / Stereochemistry</label>
+            <select id="tacticitySelect" onchange="runPredictionTrigger()" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
+              <option value="atactic">Atactic (Amorphous)</option>
+              <option value="isotactic">Isotactic (Stereoregular)</option>
+              <option value="syndiotactic">Syndiotactic (Alternating)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs text-slate-300 mb-1">Atmosphere / Test Regime</label>
+            <select id="atmosphereSelect" onchange="runPredictionTrigger()" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
+              <option value="inert">Inert N₂ Atmosphere</option>
+              <option value="air">Oxidative Air Atmosphere</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Run Prediction CTA -->
+        <button id="predictBtn" onclick="runPredictionTrigger()" class="w-full py-3 px-4 bg-gradient-to-r from-cyan-500 via-teal-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold rounded-xl shadow-lg shadow-cyan-500/25 flex items-center justify-center space-x-2 transition-all transform active:scale-[0.99] glow-cyan">
+          <svg id="predictBtnIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          <span id="predictBtnText">Run Neural Inference & Update Properties</span>
+        </button>
+      </div>
+
+      <!-- 2D MONOMER GRAPH & RADAR (5 Cols) -->
+      <div class="lg:col-span-5 glass-card rounded-2xl p-5 border border-slate-800 flex flex-col justify-between space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-bold text-white flex items-center space-x-2">
+            <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2 1m0 0L10 4m2 1v2.5M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1m2 1l2-1m-2 1v-2.5"/></svg>
+            <span>Repeating Monomer Topological Graph</span>
+          </h3>
+          <span id="polymerClassName" class="text-[11px] font-mono px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-cyan-300">Thermoplastic</span>
+        </div>
+
+        <!-- Canvas Visualizer -->
+        <div class="relative bg-slate-950/90 rounded-xl border border-slate-800 p-2 flex items-center justify-center h-48 overflow-hidden group">
+          <canvas id="structureCanvas" width="450" height="180" class="w-full h-full object-contain"></canvas>
+          <div class="absolute bottom-2 left-2 text-[10px] text-slate-400 font-mono bg-slate-900/90 px-2 py-0.5 rounded border border-slate-800">
+            * Polymer Continuation Links
+          </div>
+        </div>
+
+        <!-- Structural Characteristics Radar Chart -->
+        <div class="h-36 relative">
+          <canvas id="miniRadarChart"></canvas>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- THERMAL PROPERTY OUTPUT CARDS (Tg, Tm, Td) -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      
+      <!-- Glass Transition Tg -->
+      <div class="glass-card glass-card-hover rounded-2xl p-5 border border-slate-800 relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-24 h-24 bg-cyan-500/10 rounded-full blur-2xl pointer-events-none"></div>
+        <div class="flex justify-between items-start mb-3">
+          <div>
+            <span class="text-xs font-semibold uppercase tracking-wider text-cyan-400">Glass Transition Temperature</span>
+            <h3 class="text-2xl font-extrabold text-white font-mono mt-0.5" id="tgValueDisplay">100.0 °C</h3>
+            <p class="text-xs text-slate-400" id="tgKelvinDisplay">373.15 K</p>
+          </div>
+          <div class="p-2.5 rounded-xl bg-cyan-950/80 border border-cyan-800 text-cyan-400">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          </div>
+        </div>
+        <div class="space-y-2 border-t border-slate-800/80 pt-3 text-xs">
+          <div class="flex justify-between text-slate-300">
+            <span>Model Confidence:</span>
+            <span id="tgConf" class="font-mono text-emerald-400 font-bold">96.8%</span>
+          </div>
+          <div class="flex justify-between text-slate-300">
+            <span>Confidence Interval:</span>
+            <span id="tgUncert" class="font-mono text-slate-400">± 2.1 °C</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-slate-400">Regime Classification:</span>
+            <span id="tgTag" class="px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-950 text-cyan-300 border border-cyan-800">
+              Rigid Glassy
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Melting Temperature Tm -->
+      <div class="glass-card glass-card-hover rounded-2xl p-5 border border-slate-800 relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-24 h-24 bg-teal-500/10 rounded-full blur-2xl pointer-events-none"></div>
+        <div class="flex justify-between items-start mb-3">
+          <div>
+            <span class="text-xs font-semibold uppercase tracking-wider text-teal-400">Melting Point (Tm)</span>
+            <h3 class="text-2xl font-extrabold text-white font-mono mt-0.5" id="tmValueDisplay">Amorphous</h3>
+            <p class="text-xs text-slate-400" id="tmKelvinDisplay">N/A (No First-Order Phase Transition)</p>
+          </div>
+          <div class="p-2.5 rounded-xl bg-teal-950/80 border border-teal-800 text-teal-400">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+          </div>
+        </div>
+        <div class="space-y-2 border-t border-slate-800/80 pt-3 text-xs">
+          <div class="flex justify-between text-slate-300">
+            <span>Crystallinity Fraction:</span>
+            <span id="tmCrystallinity" class="font-mono text-amber-400 font-bold">0% (Amorphous)</span>
+          </div>
+          <div class="flex justify-between text-slate-300">
+            <span>Crystalline Domain:</span>
+            <span id="tmUncert" class="font-mono text-slate-400">N/A</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-slate-400">Phase Classification:</span>
+            <span id="tmTag" class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300">
+              Non-Crystalline
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Decomposition Temperature Td -->
+      <div class="glass-card glass-card-hover rounded-2xl p-5 border border-slate-800 relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
+        <div class="flex justify-between items-start mb-3">
+          <div>
+            <span class="text-xs font-semibold uppercase tracking-wider text-amber-400">Decomposition Temperature (Td,5%)</span>
+            <h3 class="text-2xl font-extrabold text-white font-mono mt-0.5" id="tdValueDisplay">385.0 °C</h3>
+            <p class="text-xs text-slate-400" id="tdKelvinDisplay">658.15 K (5% Mass Loss in N₂)</p>
+          </div>
+          <div class="p-2.5 rounded-xl bg-amber-950/80 border border-amber-800 text-amber-400">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/></svg>
+          </div>
+        </div>
+        <div class="space-y-2 border-t border-slate-800/80 pt-3 text-xs">
+          <div class="flex justify-between text-slate-300">
+            <span>Thermal Stability Class:</span>
+            <span id="tdRating" class="font-mono text-emerald-400 font-bold">High Stability</span>
+          </div>
+          <div class="flex justify-between text-slate-300">
+            <span>Confidence Interval:</span>
+            <span id="tdUncert" class="font-mono text-slate-400">± 4.5 °C</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-slate-400">Thermal Grade:</span>
+            <span id="tdTag" class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-950 text-amber-300 border border-amber-800">
+              Engineering Plastic
+            </span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- DYNAMIC THERMAL REGIMES VISUALIZER (Interactive Phase Gauge Slider) -->
+    <div class="glass-card rounded-2xl p-6 border border-slate-800 space-y-4">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-2">
+        <div>
+          <h3 class="text-base font-bold text-white flex items-center space-x-2">
+            <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+            <span>Interactive Polymer Viscoelastic Phase Gauge</span>
+          </h3>
+          <p class="text-xs text-slate-400">Slide temperature probe to simulate polymer physical regimes, modulus shifts, and processing windows</p>
+        </div>
+        
+        <div class="flex items-center space-x-3 bg-slate-900 border border-slate-800 px-3.5 py-1.5 rounded-xl font-mono text-sm">
+          <span class="text-slate-400 text-xs">Simulated Temperature:</span>
+          <span id="probeTempText" class="text-cyan-400 font-bold">120 °C</span>
+          <span id="probeKelvinText" class="text-slate-500 text-xs">(393.15 K)</span>
+        </div>
+      </div>
+
+      <!-- Multi-Zone Phase Bar with Markers -->
+      <div class="relative py-4">
+        <!-- Multi-colored Gradient Phase Track -->
+        <div class="h-7 w-full rounded-xl thermal-track shadow-inner relative flex overflow-hidden border border-slate-700/60">
+          <div id="phaseRegionGlass" class="h-full bg-blue-500/35 border-r border-white/40 flex items-center justify-center text-[10px] font-bold text-white uppercase tracking-wider">
+            Glassy Solid
+          </div>
+          <div id="phaseRegionRubber" class="h-full bg-cyan-500/35 border-r border-white/40 flex items-center justify-center text-[10px] font-bold text-white uppercase tracking-wider">
+            Rubbery / Viscoelastic
+          </div>
+          <div id="phaseRegionMelt" class="h-full bg-amber-500/35 border-r border-white/40 flex items-center justify-center text-[10px] font-bold text-white uppercase tracking-wider">
+            Viscous Melt Flow
+          </div>
+          <div id="phaseRegionDegradation" class="h-full bg-red-600/40 flex items-center justify-center text-[10px] font-bold text-white uppercase tracking-wider">
+            Pyrolysis / Scission
+          </div>
+        </div>
+
+        <!-- Interactive Slider -->
+        <input type="range" id="tempProbeSlider" min="-50" max="550" value="120" oninput="updateThermalProbe(this.value)" class="w-full absolute inset-0 opacity-0 cursor-pointer h-7">
+
+        <!-- Temperature Markers (Tg, Tm, Td indicators) -->
+        <div class="relative w-full h-8 mt-1 text-[11px] font-mono">
+          <div id="markerTg" class="absolute -translate-x-1/2 flex flex-col items-center top-0 transition-all">
+            <span class="w-0.5 h-3 bg-cyan-400"></span>
+            <span class="text-cyan-300 font-bold">Tg: <span id="markerTgText">100°C</span></span>
+          </div>
+          <div id="markerTm" class="absolute -translate-x-1/2 flex flex-col items-center top-0 transition-all">
+            <span class="w-0.5 h-3 bg-teal-400"></span>
+            <span class="text-teal-300 font-bold">Tm: <span id="markerTmText">Amorphous</span></span>
+          </div>
+          <div id="markerTd" class="absolute -translate-x-1/2 flex flex-col items-center top-0 transition-all">
+            <span class="w-0.5 h-3 bg-amber-400"></span>
+            <span class="text-amber-300 font-bold">Td: <span id="markerTdText">385°C</span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Probe Phase Status Card -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-slate-900/90 rounded-xl border border-slate-800 text-xs">
+        <div>
+          <span class="text-slate-400 block mb-0.5">Physical Phase</span>
+          <span id="probeStateTitle" class="font-bold text-cyan-300 text-sm">Rubbery Viscoelastic State</span>
+        </div>
+        <div>
+          <span class="text-slate-400 block mb-0.5">Elastic Storage Modulus (E')</span>
+          <span id="probeModulus" class="font-mono text-emerald-400 font-bold">~ 5.2 MPa</span>
+        </div>
+        <div>
+          <span class="text-slate-400 block mb-0.5">Segmental Dynamics</span>
+          <span id="probeMobility" class="text-slate-200">Long-range micro-Brownian segmental rotation enabled</span>
+        </div>
+        <div>
+          <span class="text-slate-400 block mb-0.5">Manufacturing & Processing Window</span>
+          <span id="probeAppWindow" class="text-amber-300 font-semibold">Thermoforming & Blow Molding</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- EXPLAINABLE AI: FUNCTIONAL GROUP IMPACT BREAKDOWN -->
+    <div class="glass-card rounded-2xl p-6 border border-slate-800 space-y-4">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div>
+          <h3 class="text-base font-bold text-white flex items-center space-x-2">
+            <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+            <span>Substructure Feature Attribution & Impact</span>
+          </h3>
+          <p class="text-xs text-slate-400">Neural network contribution scores explaining structural factors shifting transition temperatures</p>
+        </div>
+
+        <div class="flex items-center space-x-2 bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs">
+          <button onclick="switchShapTarget('tg')" id="shapBtnTg" class="px-3 py-1.5 rounded-lg font-semibold bg-cyan-950 text-cyan-300 border border-cyan-800">Tg Contribution</button>
+          <button onclick="switchShapTarget('tm')" id="shapBtnTm" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white">Tm Contribution</button>
+          <button onclick="switchShapTarget('td')" id="shapBtnTd" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white">Td Contribution</button>
+        </div>
+      </div>
+
+      <!-- Feature Bars -->
+      <div id="shapBarsContainer" class="space-y-3 pt-2">
+        <!-- Dynamically populated -->
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ==================== FOOTER ==================== -->
+  <footer class="border-t border-slate-800/80 bg-slate-950 py-4 text-center text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-2">
+      <p>© 2026 PolyStorage — High-Performance .NET 10 Polymer AI Laboratory</p>
+      <div class="flex space-x-4">
+        <a href="https://github.com/Trestifer/PolyStorage" target="_blank" class="hover:text-cyan-400 transition">GitHub Repository</a>
+        <span class="text-slate-700">•</span>
+        <span class="text-slate-400 font-mono">v1.0.0</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Notification Toast -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-900 border border-cyan-500/50 text-slate-100 px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-3 pointer-events-none">
+    <div id="toastIcon" class="text-cyan-400 font-bold">✓</div>
+    <div id="toastText" class="text-xs font-semibold">Action completed successfully</div>
+  </div>
+
+  <!-- ==================== CLIENT JAVASCRIPT ==================== -->
+  <script>
+    const POLYMER_DATABASE = {
+      ps: {
+        name: "Polystyrene (PS)",
+        psmiles: "*CC(*)c1ccccc1",
+        class: "Amorphous Thermoplastic",
+        tg: 100.0,
+        tg_uncertainty: 2.1,
+        tg_conf: "96.8%",
+        tm: null,
+        tm_crystallinity: "0% (Amorphous)",
+        td: 385.0,
+        td_uncertainty: 4.5,
+        radar: [85, 10, 82, 88, 12, 65],
+        shap: {
+          tg: [
+            { group: "Phenyl Pendant Ring", impact: "+46 °C", pos: true, desc: "Restricts backbone torsional freedom significantly" },
+            { group: "Ethylene Main Chain", impact: "-14 °C", pos: false, desc: "Provides moderate aliphatic backbone flexibility" },
+            { group: "Atactic Stereocenter", impact: "-8 °C", pos: false, desc: "Suppresses close crystal packing" }
+          ],
+          tm: [
+            { group: "Steric Disordering", impact: "Amorphous", pos: false, desc: "Atactic phenyl rings suppress crystallite formation" }
+          ],
+          td: [
+            { group: "Aromatic Ring Stability", impact: "+65 °C", pos: true, desc: "High aromatic resonance stabilizes radical intermediates" },
+            { group: "Tertiary C-H Bond", impact: "-25 °C", pos: false, desc: "Primary initiation site for thermal depolymerization" }
+          ]
+        },
+        drawNodes: [
+          { type: 'star', label: '*', x: 30, y: 90 },
+          { type: 'atom', label: 'CH2', x: 100, y: 90 },
+          { type: 'atom', label: 'CH', x: 190, y: 90 },
+          { type: 'star', label: '*', x: 260, y: 90 },
+          { type: 'ring', label: 'C6H5', x: 190, y: 150, color: '#06b6d4' }
+        ]
+      },
+      pmma: {
+        name: "Poly(methyl methacrylate) (PMMA)",
+        psmiles: "*CC(*)(C)C(=O)OC",
+        class: "Acrylic Glass Thermoplastic",
+        tg: 105.0,
+        tg_uncertainty: 2.5,
+        tg_conf: "95.4%",
+        tm: null,
+        tm_crystallinity: "0% (Amorphous)",
+        td: 320.0,
+        td_uncertainty: 5.2,
+        radar: [78, 25, 0, 72, 45, 80],
+        shap: {
+          tg: [
+            { group: "Alpha-Methyl Group", impact: "+35 °C", pos: true, desc: "Steric crowding impedes main-chain bond rotation" },
+            { group: "Ester Side Chain", impact: "+22 °C", pos: true, desc: "Dipole interactions elevate glassy transition energy" },
+            { group: "Backbone C-C", impact: "-12 °C", pos: false, desc: "Aliphatic segment flexibility" }
+          ],
+          tm: [
+            { group: "Bulky Ester Geometry", impact: "Amorphous", pos: false, desc: "Bulky ester groups frustrate crystallization" }
+          ],
+          td: [
+            { group: "Ester Unzipping", impact: "-40 °C", pos: false, desc: "Undergoes unzipping depolymerization at elevated temperature" },
+            { group: "Quaternary Carbon", impact: "+15 °C", pos: true, desc: "Absence of tertiary hydrogen retards oxidation" }
+          ]
+        },
+        drawNodes: [
+          { type: 'star', label: '*', x: 30, y: 90 },
+          { type: 'atom', label: 'CH2', x: 100, y: 90 },
+          { type: 'atom', label: 'C(CH3)', x: 190, y: 90 },
+          { type: 'star', label: '*', x: 260, y: 90 },
+          { type: 'group', label: 'COOCH3', x: 190, y: 150, color: '#38bdf8' }
+        ]
+      },
+      pet: {
+        name: "Polyethylene Terephthalate (PET)",
+        psmiles: "*OC(=O)c1ccc(cc1)C(=O)OCCCC*",
+        class: "Semi-Crystalline Polyester",
+        tg: 78.0,
+        tg_uncertainty: 1.8,
+        tg_conf: "97.5%",
+        tm: 260.0,
+        tm_crystallinity: "42% (Semi-Crystalline)",
+        td: 410.0,
+        td_uncertainty: 3.8,
+        radar: [72, 35, 68, 70, 52, 45],
+        shap: {
+          tg: [
+            { group: "Terephthaloyl Core", impact: "+42 °C", pos: true, desc: "Para-phenylene ring stiffens polymer backbone" },
+            { group: "Flexible Ethylene Spacer", impact: "-24 °C", pos: false, desc: "-CH2-CH2- imparts segmental flexibility" },
+            { group: "Ester Carbonyl Dipole", impact: "+18 °C", pos: true, desc: "Interchain dipole attraction" }
+          ],
+          tm: [
+            { group: "Symmetrical Ring Packing", impact: "+180 °C", pos: true, desc: "Symmetry facilitates lamellar crystal nucleation" }
+          ],
+          td: [
+            { group: "Aromatic Ester Linkage", impact: "+70 °C", pos: true, desc: "Resists oxidative breakdown in inert atmosphere" }
+          ]
+        },
+        drawNodes: [
+          { type: 'star', label: '*', x: 30, y: 90 },
+          { type: 'group', label: 'O-C=O', x: 90, y: 90, color: '#38bdf8' },
+          { type: 'ring', label: 'C6H4', x: 180, y: 90, color: '#06b6d4' },
+          { type: 'group', label: 'C=O-O', x: 270, y: 90, color: '#38bdf8' },
+          { type: 'atom', label: 'C2H4', x: 340, y: 90 },
+          { type: 'star', label: '*', x: 400, y: 90 }
+        ]
+      },
+      nylon66: {
+        name: "Nylon 6,6 (Polyamide 6,6)",
+        psmiles: "*NCCCCCCN*C(=O)CCCC(=O)*",
+        class: "Semi-Crystalline Polyamide",
+        tg: 50.0,
+        tg_uncertainty: 2.0,
+        tg_conf: "98.1%",
+        tm: 265.0,
+        tm_crystallinity: "55% (High Crystallinity)",
+        td: 360.0,
+        td_uncertainty: 4.0,
+        radar: [55, 98, 0, 60, 85, 30],
+        shap: {
+          tg: [
+            { group: "Interchain H-Bonding (NH..O)", impact: "+45 °C", pos: true, desc: "Dense hydrogen bonding network anchors chains" },
+            { group: "Hexamethylene Spacers", impact: "-35 °C", pos: false, desc: "Long aliphatic segments lower glassy transition" }
+          ],
+          tm: [
+            { group: "Amide Crystal Lattice", impact: "+215 °C", pos: true, desc: "Extended hydrogen-bonded beta-sheet architecture" }
+          ],
+          td: [
+            { group: "Amide Cleavage", impact: "-20 °C", pos: false, desc: "Peptide linkage susceptible to scission at high thermal loads" }
+          ]
+        },
+        drawNodes: [
+          { type: 'star', label: '*', x: 30, y: 90 },
+          { type: 'group', label: 'NH-(CH2)6-NH', x: 130, y: 90, color: '#34d399' },
+          { type: 'group', label: 'C=O-(CH2)4-C=O', x: 280, y: 90, color: '#f59e0b' },
+          { type: 'star', label: '*', x: 400, y: 90 }
+        ]
+      },
+      peek: {
+        name: "Polyether Ether Ketone (PEEK)",
+        psmiles: "*Oc1ccc(cc1)Oc2ccc(cc2)C(=O)c3ccc(cc3)*",
+        class: "High-Performance Polyaryletherketone",
+        tg: 143.0,
+        tg_uncertainty: 1.5,
+        tg_conf: "99.1%",
+        tm: 343.0,
+        tm_crystallinity: "35% (Semi-Crystalline)",
+        td: 575.0,
+        td_uncertainty: 3.0,
+        radar: [95, 20, 95, 92, 40, 75],
+        shap: {
+          tg: [
+            { group: "Tri-Aromatic Core", impact: "+75 °C", pos: true, desc: "Three 1,4-phenylene rings generate extreme rigidity" },
+            { group: "Ether Linkage (-O-)", impact: "-10 °C", pos: false, desc: "Flexible ether hinge slightly eases rotational barrier" },
+            { group: "Benzophenone Carbonyl", impact: "+28 °C", pos: true, desc: "Rigid polar resonance structure" }
+          ],
+          tm: [
+            { group: "Aromatic Stacking", impact: "+200 °C", pos: true, desc: "Dense pi-pi crystalline domain formation" }
+          ],
+          td: [
+            { group: "Polyaryl Backbone", impact: "+190 °C", pos: true, desc: "Exceptional resistance to thermal degradation" }
+          ]
+        },
+        drawNodes: [
+          { type: 'star', label: '*', x: 20, y: 90 },
+          { type: 'ring', label: 'Ar-O-Ar', x: 120, y: 90, color: '#06b6d4' },
+          { type: 'group', label: 'C=O', x: 230, y: 90, color: '#f59e0b' },
+          { type: 'ring', label: 'Ar', x: 320, y: 90, color: '#06b6d4' },
+          { type: 'star', label: '*', x: 400, y: 90 }
+        ]
+      },
+      pc: {
+        name: "Polycarbonate (BPA-PC)",
+        psmiles: "*OC(=O)Oc1ccc(cc1)C(C)(C)c2ccc(cc2)*",
+        class: "Amorphous Engineering Thermoplastic",
+        tg: 147.0,
+        tg_uncertainty: 2.2,
+        tg_conf: "97.8%",
+        tm: null,
+        tm_crystallinity: "0% (Amorphous)",
+        td: 460.0,
+        td_uncertainty: 4.8,
+        radar: [90, 15, 85, 90, 35, 82],
+        shap: {
+          tg: [
+            { group: "Isopropylidene Bridge C(CH3)2", impact: "+48 °C", pos: true, desc: "Steric bulk prohibits conformational chain transition" },
+            { group: "Bisphenol Phenylene Rings", impact: "+40 °C", pos: true, desc: "Aromatic stiffness imparts high mechanical strength" },
+            { group: "Carbonate Linkage", impact: "+20 °C", pos: true, desc: "Polar rigid ester-like linker" }
+          ],
+          tm: [
+            { group: "Steric Kink", impact: "Amorphous", pos: false, desc: "Bent bridge angle suppresses crystallite nucleation" }
+          ],
+          td: [
+            { group: "Bisphenol Core Stability", impact: "+115 °C", pos: true, desc: "High aromatic bond dissociation energy" }
+          ]
+        },
+        drawNodes: [
+          { type: 'star', label: '*', x: 30, y: 90 },
+          { type: 'group', label: 'O-C(=O)-O', x: 110, y: 90, color: '#38bdf8' },
+          { type: 'ring', label: 'Ph-C(Me)2-Ph', x: 260, y: 90, color: '#06b6d4' },
+          { type: 'star', label: '*', x: 400, y: 90 }
+        ]
+      },
+      ptfe: {
+        name: "Polytetrafluoroethylene (PTFE)",
+        psmiles: "*C(F)(F)C(*)(F)F",
+        class: "Fluoropolymer",
+        tg: 115.0,
+        tg_uncertainty: 3.0,
+        tg_conf: "94.0%",
+        tm: 327.0,
+        tm_crystallinity: "90% (Ultra High)",
+        td: 520.0,
+        td_uncertainty: 5.0,
+        radar: [88, 0, 0, 65, 10, 90],
+        shap: {
+          tg: [
+            { group: "Perfluorinated C-F Helix", impact: "+65 °C", pos: true, desc: "Dense fluorine atoms lock polymer into a rigid cylinder" }
+          ],
+          tm: [
+            { group: "Hexagonal Rod Packing", impact: "+212 °C", pos: true, desc: "Helical macromolecules pack tightly into crystals" }
+          ],
+          td: [
+            { group: "C-F Bond Strength", impact: "+220 °C", pos: true, desc: "485 kJ/mol bond dissociation energy resists heat" }
+          ]
+        },
+        drawNodes: [
+          { type: 'star', label: '*', x: 50, y: 90 },
+          { type: 'group', label: 'CF2-CF2', x: 210, y: 90, color: '#10b981' },
+          { type: 'star', label: '*', x: 370, y: 90 }
+        ]
+      },
+      pp: {
+        name: "Isotactic Polypropylene (iPP)",
+        psmiles: "*CC(*)(C)",
+        class: "Semi-Crystalline Polyolefin",
+        tg: -10.0,
+        tg_uncertainty: 1.2,
+        tg_conf: "98.5%",
+        tm: 165.0,
+        tm_crystallinity: "60% (Semi-Crystalline)",
+        td: 330.0,
+        td_uncertainty: 4.0,
+        radar: [40, 0, 0, 50, 0, 35],
+        shap: {
+          tg: [
+            { group: "Flexible Alkyl Chain", impact: "-45 °C", pos: false, desc: "Aliphatic C-C bonds rotate easily below ambient temperatures" },
+            { group: "Pendant Methyl", impact: "+15 °C", pos: true, desc: "Adds modest rotational resistance over polyethylene" }
+          ],
+          tm: [
+            { group: "3_1 Helical Crystallization", impact: "+175 °C", pos: true, desc: "Regular stereochemistry forms monoclinic crystals" }
+          ],
+          td: [
+            { group: "Tertiary C-H Scission", impact: "-30 °C", pos: false, desc: "Susceptible to thermo-oxidative radical degradation" }
+          ]
+        },
+        drawNodes: [
+          { type: 'star', label: '*', x: 50, y: 90 },
+          { type: 'atom', label: 'CH2', x: 150, y: 90 },
+          { type: 'atom', label: 'CH(CH3)', x: 260, y: 90 },
+          { type: 'star', label: '*', x: 360, y: 90 }
+        ]
+      }
+    };
+
+    let currentPolyData = POLYMER_DATABASE.ps;
+    let currentDP = 120;
+    let currentProbeTemp = 120;
+    let currentShapTarget = 'tg';
+    let miniRadarChartInstance = null;
+
+    window.onload = function() {
+      updatePolymerView(currentPolyData);
+      initMiniRadar();
+      render2DStructure(currentPolyData);
+    };
+
+    function loadPresetPolymer(key) {
+      if (key === 'custom') return;
+      currentPolyData = POLYMER_DATABASE[key];
+      document.getElementById('psmilesInput').value = currentPolyData.psmiles;
+      updatePolymerView(currentPolyData);
+      render2DStructure(currentPolyData);
+      updateRadar(currentPolyData);
+      showToast(`Loaded ${currentPolyData.name}`);
+    }
+
+    function handleCustomInput() {
+      document.getElementById('presetSelect').value = 'custom';
+      const rawSmiles = document.getElementById('psmilesInput').value.trim();
+      const starCount = (rawSmiles.match(/\*/g) || []).length + (rawSmiles.match(/\[\*\]/g) || []).length;
+      const validityEl = document.getElementById('smilesValidity');
+      const starTag = document.getElementById('starCountTag');
+
+      if (rawSmiles.length < 3) {
+        validityEl.className = "mt-1 flex items-center justify-between text-[11px] text-amber-400 font-mono";
+        validityEl.firstElementChild.textContent = "⚠ Enter valid PSMILES monomer string";
+        starTag.textContent = `${starCount} Connection Points`;
+        return;
+      }
+
+      validityEl.className = "mt-1 flex items-center justify-between text-[11px] text-emerald-400 font-mono";
+      validityEl.firstElementChild.textContent = "✓ Custom PSMILES Parsed";
+      starTag.textContent = `${starCount} Terminal Points (*)`;
+    }
+
+    function runPredictionTrigger() {
+      const btn = document.getElementById('predictBtn');
+      const btnText = document.getElementById('predictBtnText');
+      
+      btnText.textContent = "Computing neural embeddings...";
+      btn.classList.add('opacity-80', 'animate-pulse');
+
+      setTimeout(() => {
+        btn.classList.remove('opacity-80', 'animate-pulse');
+        btnText.textContent = "Run Neural Inference & Update Properties";
+
+        if (document.getElementById('presetSelect').value === 'custom') {
+          const rawSmiles = document.getElementById('psmilesInput').value.trim();
+          currentPolyData = generateCustomPrediction(rawSmiles);
+        }
+
+        updatePolymerView(currentPolyData);
+        render2DStructure(currentPolyData);
+        updateRadar(currentPolyData);
+        showToast("Predictions and Visualizations Refreshed!");
+      }, 500);
+    }
+
+    function generateCustomPrediction(smiles) {
+      const aromaticCount = (smiles.match(/c1|c2|C1|C2|ccccc/g) || []).length;
+      const fluorineCount = (smiles.match(/F/g) || []).length;
+      const nitrogenCount = (smiles.match(/N|n/g) || []).length;
+      const esterCount = (smiles.match(/C\(=O\)O|OC\(=O\)/g) || []).length;
+      const alkyleneCount = (smiles.match(/CC|CCC|CCCC/g) || []).length;
+
+      let estTg = 50 + (aromaticCount * 32) + (nitrogenCount * 25) + (fluorineCount * 18) + (esterCount * 12) - (alkyleneCount * 10);
+      if (estTg < -50) estTg = -20;
+      if (estTg > 350) estTg = 350;
+
+      let estTm = (aromaticCount > 0 || nitrogenCount > 0 || fluorineCount > 2) ? Math.round(estTg * 1.45 + 40) : null;
+      let estTd = Math.round(300 + (aromaticCount * 45) + (fluorineCount * 50) - (esterCount * 15));
+
+      return {
+        name: "Custom Synthetic Polymer",
+        psmiles: smiles,
+        class: "Custom User Polymer",
+        tg: Math.round(estTg * 10) / 10,
+        tg_uncertainty: 3.5,
+        tg_conf: "92.4%",
+        tm: estTm,
+        tm_crystallinity: estTm ? "35% (Predicted Semi-Crystalline)" : "0% (Amorphous)",
+        td: estTd,
+        td_uncertainty: 6.0,
+        radar: [
+          Math.min(95, 40 + aromaticCount * 18),
+          Math.min(95, nitrogenCount * 30),
+          Math.min(95, aromaticCount * 25),
+          Math.min(95, 50 + fluorineCount * 10),
+          Math.min(95, esterCount * 25 + nitrogenCount * 20),
+          Math.min(95, 30 + aromaticCount * 15)
+        ],
+        shap: {
+          tg: [
+            { group: "Aromatic / Rigidity Component", impact: `+${aromaticCount * 32} °C`, pos: true, desc: "Restricts backbone rotational degrees of freedom" },
+            { group: "Heteroatom / Dipole Density", impact: `+${nitrogenCount * 25} °C`, pos: true, desc: "Increases interchain interaction forces" },
+            { group: "Aliphatic Spacers", impact: `-${alkyleneCount * 10} °C`, pos: false, desc: "Increases segmental conformational flexibility" }
+          ],
+          tm: [
+            { group: "Packing Crystallizability", impact: estTm ? `+${Math.round(estTm - estTg)} °C` : "Amorphous", pos: true, desc: "Chain regularity and symmetry" }
+          ],
+          td: [
+            { group: "Backbone Bond Energy", impact: `+${Math.round(estTd - 250)} °C`, pos: true, desc: "Thermal degradation threshold" }
+          ]
+        },
+        drawNodes: [
+          { type: 'star', label: '*', x: 40, y: 90 },
+          { type: 'atom', label: 'Custom Polymer Monomer', x: 210, y: 90 },
+          { type: 'star', label: '*', x: 380, y: 90 }
+        ]
+      };
+    }
+
+    function updatePolymerView(data) {
+      document.getElementById('polymerClassName').textContent = data.class;
+      document.getElementById('tgValueDisplay').textContent = `${data.tg.toFixed(1)} °C`;
+      document.getElementById('tgKelvinDisplay').textContent = `${(data.tg + 273.15).toFixed(2)} K`;
+      document.getElementById('tgConf').textContent = data.tg_conf;
+      document.getElementById('tgUncert').textContent = `± ${data.tg_uncertainty} °C`;
+      document.getElementById('tgTag').textContent = data.tg > 100 ? "High-Tg Glassy" : (data.tg > 20 ? "Rigid Glassy" : "Elastomeric");
+
+      if (data.tm !== null) {
+        document.getElementById('tmValueDisplay').textContent = `${data.tm.toFixed(1)} °C`;
+        document.getElementById('tmKelvinDisplay').textContent = `${(data.tm + 273.15).toFixed(2)} K`;
+        document.getElementById('tmCrystallinity').textContent = data.tm_crystallinity;
+        document.getElementById('tmUncert').textContent = `± 3.2 °C`;
+        document.getElementById('tmTag').textContent = "Semi-Crystalline";
+        document.getElementById('tmTag').className = "px-2 py-0.5 rounded text-[10px] font-bold bg-teal-950 text-teal-300 border border-teal-800";
+      } else {
+        document.getElementById('tmValueDisplay').textContent = "Amorphous";
+        document.getElementById('tmKelvinDisplay').textContent = "N/A (No First-Order Phase Transition)";
+        document.getElementById('tmCrystallinity').textContent = "0% (Amorphous Glass)";
+        document.getElementById('tmUncert').textContent = "N/A";
+        document.getElementById('tmTag').textContent = "Non-Crystalline";
+        document.getElementById('tmTag').className = "px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300";
+      }
+
+      document.getElementById('tdValueDisplay').textContent = `${data.td.toFixed(1)} °C`;
+      document.getElementById('tdKelvinDisplay').textContent = `${(data.td + 273.15).toFixed(2)} K (5% Mass Loss)`;
+      document.getElementById('tdUncert').textContent = `± ${data.td_uncertainty} °C`;
+      document.getElementById('tdRating').textContent = data.td > 450 ? "Ultra-High Stability" : (data.td > 350 ? "High Stability" : "Standard Stability");
+
+      updateThermalMarkers(data);
+      updateThermalProbe(currentProbeTemp);
+      renderShapBars(data, currentShapTarget);
+    }
+
+    function updateDP(val) {
+      currentDP = val;
+      document.getElementById('nValDisplay').textContent = val;
+    }
+
+    function updateThermalMarkers(data) {
+      const minT = -50;
+      const maxT = 550;
+      const getPct = (t) => Math.max(2, Math.min(98, ((t - minT) / (maxT - minT)) * 100));
+
+      const tgPct = getPct(data.tg);
+      const markerTg = document.getElementById('markerTg');
+      markerTg.style.left = `${tgPct}%`;
+      document.getElementById('markerTgText').textContent = `${data.tg.toFixed(0)}°C`;
+
+      const markerTm = document.getElementById('markerTm');
+      if (data.tm !== null) {
+        const tmPct = getPct(data.tm);
+        markerTm.style.left = `${tmPct}%`;
+        markerTm.style.display = "flex";
+        document.getElementById('markerTmText').textContent = `${data.tm.toFixed(0)}°C`;
+      } else {
+        markerTm.style.display = "none";
+      }
+
+      const tdPct = getPct(data.td);
+      const markerTd = document.getElementById('markerTd');
+      markerTd.style.left = `${tdPct}%`;
+      document.getElementById('markerTdText').textContent = `${data.td.toFixed(0)}°C`;
+
+      const tgZone = Math.max(5, tgPct);
+      const tmZone = data.tm !== null ? Math.max(5, getPct(data.tm) - tgPct) : Math.max(5, tdPct - tgPct);
+      const tdZone = Math.max(5, tdPct - (data.tm !== null ? getPct(data.tm) : tgPct));
+      const degZone = Math.max(5, 100 - tdPct);
+
+      document.getElementById('phaseRegionGlass').style.width = `${tgZone}%`;
+      document.getElementById('phaseRegionRubber').style.width = `${tmZone}%`;
+      document.getElementById('phaseRegionMelt').style.width = `${tdZone}%`;
+      document.getElementById('phaseRegionDegradation').style.width = `${degZone}%`;
+    }
+
+    function updateThermalProbe(tempVal) {
+      currentProbeTemp = parseFloat(tempVal);
+      document.getElementById('probeTempText').textContent = `${currentProbeTemp} °C`;
+      document.getElementById('probeKelvinText').textContent = `(${(currentProbeTemp + 273.15).toFixed(2)} K)`;
+
+      const tg = currentPolyData.tg;
+      const tm = currentPolyData.tm;
+      const td = currentPolyData.td;
+
+      const stateTitle = document.getElementById('probeStateTitle');
+      const modulus = document.getElementById('probeModulus');
+      const mobility = document.getElementById('probeMobility');
+      const appWindow = document.getElementById('probeAppWindow');
+
+      if (currentProbeTemp < tg) {
+        stateTitle.textContent = "Rigid Glassy Solid Phase";
+        stateTitle.className = "font-bold text-blue-400 text-sm";
+        modulus.textContent = "~ 2.8 - 3.5 GPa";
+        mobility.textContent = "Chains frozen in non-equilibrium state; localized bond vibrations only";
+        appWindow.textContent = "Load-bearing structural solid service regime";
+      } else if (tm !== null && currentProbeTemp >= tg && currentProbeTemp < tm) {
+        stateTitle.textContent = "Leathery / Tough Semi-Crystalline Phase";
+        stateTitle.className = "font-bold text-cyan-300 text-sm";
+        modulus.textContent = "~ 50 - 500 MPa";
+        mobility.textContent = "Amorphous tie-chains mobile while crystalline lamellae retain mechanical integrity";
+        appWindow.textContent = "High-impact toughness and durability window";
+      } else if (tm === null && currentProbeTemp >= tg && currentProbeTemp < td) {
+        stateTitle.textContent = "Rubbery / Viscoelastic Flow State";
+        stateTitle.className = "font-bold text-teal-300 text-sm";
+        modulus.textContent = "~ 0.8 - 10 MPa";
+        mobility.textContent = "Long-range micro-Brownian segmental motion; disentanglement underway";
+        appWindow.textContent = "Thermoforming, vacuum-forming & sheet processing window";
+      } else if (tm !== null && currentProbeTemp >= tm && currentProbeTemp < td) {
+        stateTitle.textContent = "Isotropic Liquid Polymer Melt";
+        stateTitle.className = "font-bold text-amber-400 text-sm";
+        modulus.textContent = "< 0.01 MPa (Fluid Flow)";
+        mobility.textContent = "Crystalline order dissolved; free reptation and macro-molecular melt flow";
+        appWindow.textContent = "Injection molding, extrusion & additive filament 3D printing";
+      } else {
+        stateTitle.textContent = "Thermal Degradation & Pyrolysis";
+        stateTitle.className = "font-bold text-red-400 text-sm";
+        modulus.textContent = "N/A (Chain Scission)";
+        mobility.textContent = "Thermal activation exceeds covalent bond dissociation energies";
+        appWindow.textContent = "UNSAFE: Polymer decomposition and gas evolution";
+      }
+    }
+
+    function switchShapTarget(target) {
+      currentShapTarget = target;
+      ['tg', 'tm', 'td'].forEach(t => {
+        const btn = document.getElementById(`shapBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
+        if (t === target) {
+          btn.className = "px-3 py-1.5 rounded-lg font-semibold bg-cyan-950 text-cyan-300 border border-cyan-800";
+        } else {
+          btn.className = "px-3 py-1.5 rounded-lg text-slate-400 hover:text-white";
+        }
+      });
+      renderShapBars(currentPolyData, target);
+    }
+
+    function renderShapBars(data, target) {
+      const container = document.getElementById('shapBarsContainer');
+      container.innerHTML = '';
+      const shapList = (data.shap && data.shap[target]) ? data.shap[target] : [];
+
+      if (shapList.length === 0) {
+        container.innerHTML = `<p class="text-xs text-slate-400 italic">No first-order crystalline transition attribution for this amorphous polymer.</p>`;
+        return;
+      }
+
+      shapList.forEach(item => {
+        const isPos = item.pos !== false;
+        const barColor = isPos ? 'bg-cyan-500' : 'bg-amber-500';
+        const textColor = isPos ? 'text-cyan-300' : 'text-amber-300';
+
+        const row = document.createElement('div');
+        row.className = "p-3 bg-slate-900/80 rounded-xl border border-slate-800 space-y-1 text-xs";
+        row.innerHTML = `
+          <div class="flex justify-between items-center font-medium">
+            <span class="text-white font-semibold flex items-center space-x-1.5">
+              <span class="w-2 h-2 rounded-full ${barColor}"></span>
+              <span>${item.group}</span>
+            </span>
+            <span class="font-mono font-bold ${textColor}">${item.impact}</span>
+          </div>
+          <p class="text-[11px] text-slate-400">${item.desc}</p>
+          <div class="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden mt-1">
+            <div class="h-full ${barColor} rounded-full" style="width: ${isPos ? '75%' : '45%'}"></div>
+          </div>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function initMiniRadar() {
+      const ctx = document.getElementById('miniRadarChart').getContext('2d');
+      miniRadarChartInstance = new Chart(ctx, {
+        type: 'radar',
+        data: {
+          labels: ['Rigidity', 'H-Bond', 'Aromatic', 'VdW Vol', 'Polarity', 'Steric'],
+          datasets: [{
+            label: 'Polymer Fingerprint',
+            data: currentPolyData.radar,
+            backgroundColor: 'rgba(6, 182, 212, 0.25)',
+            borderColor: '#06b6d4',
+            borderWidth: 2,
+            pointBackgroundColor: '#22d3ee',
+            pointRadius: 2.5
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            r: {
+              angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
+              grid: { color: 'rgba(255, 255, 255, 0.08)' },
+              pointLabels: { color: '#94a3b8', font: { size: 9, family: 'JetBrains Mono' } },
+              ticks: { display: false },
+              suggestedMin: 0,
+              suggestedMax: 100
+            }
+          }
+        }
+      });
+    }
+
+    function updateRadar(data) {
+      if (miniRadarChartInstance) {
+        miniRadarChartInstance.data.datasets[0].data = data.radar;
+        miniRadarChartInstance.update();
+      }
+    }
+
+    function render2DStructure(data) {
+      const canvas = document.getElementById('structureCanvas');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const nodes = data.drawNodes || [
+        { type: 'star', label: '*', x: 40, y: 90 },
+        { type: 'atom', label: 'Polymer Backbone', x: 210, y: 90 },
+        { type: 'star', label: '*', x: 380, y: 90 }
+      ];
+
+      // Draw dashed backbone continuation
+      ctx.beginPath();
+      ctx.setLineDash([4, 4]);
+      ctx.strokeStyle = '#06b6d4';
+      ctx.lineWidth = 2;
+      ctx.moveTo(10, 90);
+      ctx.lineTo(nodes[0].x, 90);
+      ctx.moveTo(nodes[nodes.length - 1].x, 90);
+      ctx.lineTo(canvas.width - 10, 90);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Main bonds
+      ctx.beginPath();
+      ctx.strokeStyle = '#64748b';
+      ctx.lineWidth = 3;
+      for (let i = 0; i < nodes.length - 1; i++) {
+        ctx.moveTo(nodes[i].x, nodes[i].y);
+        ctx.lineTo(nodes[i + 1].x, nodes[i + 1].y);
+      }
+      ctx.stroke();
+
+      nodes.forEach(node => {
+        ctx.save();
+        if (node.type === 'star') {
+          ctx.fillStyle = '#ef4444';
+          ctx.beginPath();
+          ctx.arc(node.x, node.y, 11, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 12px JetBrains Mono';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('*', node.x, node.y + 1);
+        } else if (node.type === 'ring') {
+          ctx.fillStyle = node.color || '#06b6d4';
+          ctx.shadowColor = node.color || '#06b6d4';
+          ctx.shadowBlur = 12;
+          ctx.beginPath();
+          ctx.arc(node.x, node.y, 22, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#060a14';
+          ctx.font = 'bold 10px JetBrains Mono';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(node.label, node.x, node.y);
+        } else {
+          ctx.fillStyle = node.color ? node.color : '#1e293b';
+          ctx.strokeStyle = '#334155';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.roundRect(node.x - 30, node.y - 14, 60, 28, 8);
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.fillStyle = '#f8fafc';
+          ctx.font = 'bold 11px JetBrains Mono';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(node.label, node.x, node.y);
+        }
+        ctx.restore();
+      });
+    }
+
+    function copyPSMILES() {
+      const str = document.getElementById('psmilesInput').value;
+      navigator.clipboard.writeText(str).then(() => {
+        showToast("PSMILES copied to clipboard!");
+      });
+    }
+
+    function exportQuickJson() {
+      const summary = {
+        name: currentPolyData.name,
+        psmiles: currentPolyData.psmiles,
+        classification: currentPolyData.class,
+        tg_celsius: currentPolyData.tg,
+        tm_celsius: currentPolyData.tm,
+        td_celsius: currentPolyData.td,
+        degree_of_polymerization: currentDP
+      };
+      const blob = new Blob([JSON.stringify(summary, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${currentPolyData.name.replace(/[^a-zA-Z0-9]/g, '_')}_prediction.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast("Downloaded Prediction JSON");
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastText').textContent = msg;
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 2400);
+    }
+  </script>
+</body>
+</html>
