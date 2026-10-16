@@ -3,11 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PolyStorage — Polymer AI Thermal Predictor & 3D Interactive Lab</title>
+  <title>PolyStorage — Polymer Database Lookup</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Three.js & OrbitControls for Real-time 3D Polymer Simulation -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -112,21 +110,27 @@
               <h1 class="text-lg font-bold tracking-tight bg-gradient-to-r from-white via-slate-100 to-cyan-300 bg-clip-text text-transparent">
                 PolyStorage
               </h1>
-              <span class="px-2 py-0.5 text-[10px] font-mono font-semibold uppercase bg-cyan-950 text-cyan-400 border border-cyan-800/60 rounded-full">
-                Interactive 3D Engine
-              </span>
             </div>
-            <p class="text-xs text-slate-400">Polymer AI Thermal Predictor & Real-time Molecular Conformation Studio</p>
+            <p class="text-xs text-slate-400" data-i18n="headerSubtitle">Polymer Database Lookup & Thermal Properties</p>
           </div>
         </div>
 
-        <!-- Controls / Export -->
+        <!-- Controls / Language / Export -->
         <div class="flex items-center space-x-3">
-          <div class="hidden sm:flex items-center space-x-2 text-xs text-slate-300 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-xl">
-            <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-            <span>Framework: <strong class="text-cyan-300 font-mono">.NET 10 Web</strong></span>
+          <!-- Language Selector Pill -->
+          <div class="relative flex items-center bg-slate-900 border border-slate-800 rounded-xl px-2.5 py-1 text-xs text-slate-300 shadow-inner">
+            <span class="w-2 h-2 rounded-full bg-cyan-400 mr-2 animate-pulse"></span>
+            <span class="text-slate-400 mr-1.5 font-medium">Lang:</span>
+            <select id="langSelect" onchange="changeLanguage(this.value)" class="bg-transparent text-cyan-300 font-bold font-mono focus:outline-none cursor-pointer appearance-none pr-4">
+              <option value="en" class="bg-slate-900 text-slate-200">ENG</option>
+              <option value="vi" class="bg-slate-900 text-slate-200">VIE</option>
+            </select>
+            <div class="pointer-events-none absolute right-2 flex items-center text-slate-400">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </div>
           </div>
-          <button onclick="exportQuickJson()" class="p-2 text-slate-300 hover:text-cyan-400 hover:bg-slate-900 rounded-xl border border-slate-800 transition" title="Export Current Prediction JSON">
+
+          <button onclick="exportQuickJson()" class="p-2 text-slate-300 hover:text-cyan-400 hover:bg-slate-900 rounded-xl border border-slate-800 transition" title="Export polymer properties as JSON">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
           </button>
         </div>
@@ -137,7 +141,7 @@
   <!-- ==================== MAIN CONTENT AREA ==================== -->
   <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
-    <!-- SIGNATURE SHOWCASE ROW: INPUT CONTROLS & 3D SIGNATURE MOLECULAR LAB -->
+    <!-- MAIN INTERACTIVE SECTION -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
       
       <!-- INPUT PANEL (5 Cols) -->
@@ -148,86 +152,68 @@
           <div class="flex items-center justify-between">
             <h2 class="text-base font-bold text-white flex items-center space-x-2">
               <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_10px_#22d3ee]"></span>
-              <span>Polymer Configuration</span>
+              <span data-i18n="polyConfig">Polymer Query & Input</span>
             </h2>
-            <span id="polymerClassName" class="text-[11px] font-mono px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-cyan-300">Thermoplastic</span>
+            <span id="lookupStatusBadge" class="text-[11px] font-mono px-2 py-0.5 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-800 flex items-center space-x-1 shrink-0">
+              <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+              <span id="lookupStatusText" data-i18n="csvReady">CSV Database</span>
+            </span>
           </div>
 
-          <!-- Preset Selection -->
-          <div>
-            <label class="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">
-              Select Preset Polymer
-            </label>
+          <!-- Search & Direct Input -->
+          <div class="relative">
+            <div class="mb-1.5">
+              <label for="polymerSearchInput" data-i18n="searchLabel" class="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                Search Database
+              </label>
+            </div>
+            
             <div class="relative">
-              <select id="presetSelect" onchange="loadPresetPolymer(this.value)" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition cursor-pointer appearance-none">
-                <option value="ps">Polystyrene (PS) — [*]CC(*)(c1ccccc1)</option>
-                <option value="pmma">Poly(methyl methacrylate) (PMMA) — [*]CC(*)(C)C(=O)OC</option>
-                <option value="pet">Polyethylene Terephthalate (PET) — [*]OC(=O)c1ccc(cc1)C(=O)OCCCC[*]</option>
-                <option value="nylon66">Nylon 6,6 (Polyamide 6,6) — [*]NCCCCCCN[*]C(=O)CCCC(=O)[*]</option>
-                <option value="peek">Polyether Ether Ketone (PEEK) — [*]Oc1ccc(cc1)Oc2ccc(cc2)C(=O)c3ccc(cc3)[*]</option>
-                <option value="pc">Polycarbonate (BPA-PC) — [*]OC(=O)Oc1ccc(cc1)C(C)(C)c2ccc(cc2)[*]</option>
-                <option value="ptfe">Polytetrafluoroethylene (PTFE) — [*]C(F)(F)C(*)(F)F</option>
-                <option value="pp">Isotactic Polypropylene (iPP) — [*]CC(*)(C)</option>
-                <option value="custom">-- Custom User PSMILES --</option>
-              </select>
-              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-slate-400">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+              <input type="text" id="polymerSearchInput" autocomplete="off"
+                     oninput="handleSearchInput(this.value)"
+                     onfocus="handleSearchFocus()"
+                     data-i18n-ph="searchPlaceholder"
+                     placeholder="e.g. polystyrene, PMMA, *CC(*)c1ccccc1, or POLY_0007..."
+                     class="w-full bg-slate-900 border border-slate-700/80 rounded-xl pl-9 pr-9 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition" />
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
               </div>
+              <button onclick="clearSearchInput()" id="clearSearchBtn" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-slate-300 hidden">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </div>
+
+            <!-- Autocomplete suggestions dropdown -->
+            <div id="searchResultsDropdown" class="absolute z-30 left-0 right-0 mt-1 max-h-64 overflow-y-auto bg-slate-900 border border-slate-700 rounded-xl shadow-2xl hidden divide-y divide-slate-800">
+              <!-- Populated dynamically via JS -->
             </div>
           </div>
 
-          <!-- PSMILES Input Textarea -->
+          <!-- PSMILES / Structure String Input -->
           <div>
             <div class="flex items-center justify-between mb-1.5">
               <label for="psmilesInput" class="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center space-x-1.5">
-                <span>Monomer Repeating PSMILES String</span>
+                <span data-i18n="psmilesLabel">Polymer Monomer String (PSMILES / SLIMES)</span>
                 <span class="text-cyan-400 font-bold" title="Asterisks indicate repeat linkages">*</span>
               </label>
               <button onclick="copyPSMILES()" class="text-xs text-cyan-400 hover:text-cyan-300 flex items-center space-x-1">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h6a2 2 0 012 2v2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"/></svg>
-                <span>Copy</span>
+                <span data-i18n="copyBtn">Copy</span>
               </button>
             </div>
-            <textarea id="psmilesInput" rows="2" oninput="handleCustomInput()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 font-mono text-sm text-cyan-300 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition resize-none shadow-inner" placeholder="e.g. *CC(*)c1ccccc1"></textarea>
+            <textarea id="psmilesInput" rows="2" oninput="handlePsmilesManualEdit(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 font-mono text-sm text-cyan-300 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition resize-none shadow-inner" placeholder="e.g. *CC(*)c1ccccc1"></textarea>
             <div id="smilesValidity" class="mt-1 flex items-center justify-between text-[11px] text-emerald-400 font-mono">
-              <span>✓ Valid PSMILES Format</span>
+              <span id="sourceIndicatorTag">Source: polymer_master.csv</span>
               <span id="starCountTag">2 Terminal Points (*)</span>
             </div>
           </div>
 
-          <!-- Sliders: Chain Length & Tacticity -->
-          <div class="grid grid-cols-2 gap-3 pt-1">
-            <div>
-              <div class="flex justify-between items-center text-xs text-slate-300 mb-1">
-                <span>Chain Units (n)</span>
-                <span id="nValDisplay" class="font-mono text-cyan-400 font-bold">120</span>
-              </div>
-              <input type="range" id="nSlider" min="10" max="500" value="120" oninput="updateDP(this.value)" class="w-full accent-cyan-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer">
-            </div>
-
-            <div>
-              <label class="block text-xs text-slate-300 mb-1">Tacticity</label>
-              <select id="tacticitySelect" onchange="runPredictionTrigger()" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
-                <option value="atactic">Atactic (Random)</option>
-                <option value="isotactic">Isotactic (Regular)</option>
-                <option value="syndiotactic">Syndiotactic (Alternate)</option>
-              </select>
-            </div>
-          </div>
-
-          <!-- Mini Fingerprint Radar -->
-          <div class="pt-2">
-            <span class="block text-[11px] uppercase tracking-wider text-slate-400 font-semibold mb-1">Physicochemical Radar Fingerprint</span>
-            <div class="h-28 relative bg-slate-950/60 rounded-xl border border-slate-800/80 p-1">
-              <canvas id="miniRadarChart"></canvas>
-            </div>
-          </div>
         </div>
 
         <!-- Action Button -->
         <button id="predictBtn" onclick="runPredictionTrigger()" class="w-full mt-3 py-3 px-4 bg-gradient-to-r from-cyan-500 via-teal-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold rounded-xl shadow-lg shadow-cyan-500/25 flex items-center justify-center space-x-2 transition-all transform active:scale-[0.99] glow-cyan">
           <svg id="predictBtnIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-          <span id="predictBtnText">Run Neural Inference & Update 3D Model</span>
+          <span id="predictBtnText" data-i18n="predictBtn">Check CSV / predict when API is available</span>
         </button>
       </div>
 
@@ -238,16 +224,16 @@
         <div class="flex flex-wrap items-center justify-between gap-2 z-10">
           <div>
             <h3 class="text-base font-bold text-white flex items-center space-x-2">
-              <span class="w-3 h-3 rounded-full bg-cyan-400 animate-ping"></span>
-              <span id="moleculeTitle">Polystyrene (PS) — 3D Macromolecular Visualizer</span>
+              <span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
+              <span id="moleculeTitle">Enter a polymer to visualize</span>
             </h3>
-            <p class="text-xs text-slate-400">Interactive WebGL Ball-and-Stick Polymer Chain & Thermal Vibration Simulation</p>
+            <p class="text-xs text-slate-400" data-i18n="visualizerSubtitle">Illustrative schematic only; not a generated molecular structure</p>
           </div>
 
           <!-- Controls Toggle -->
           <div class="flex items-center space-x-1.5 bg-slate-900/90 p-1 rounded-xl border border-slate-800 text-xs">
-            <button onclick="setMoleculeViewMode('3d')" id="viewMode3DBtn" class="px-3 py-1 rounded-lg font-semibold bg-cyan-950 text-cyan-300 border border-cyan-800">3D Interactive</button>
-            <button onclick="setMoleculeViewMode('schematic')" id="viewMode2DBtn" class="px-3 py-1 rounded-lg text-slate-400 hover:text-white">2D Topological</button>
+            <button onclick="setMoleculeViewMode('3d')" id="viewMode3DBtn" data-i18n="view3D" class="px-3 py-1 rounded-lg font-semibold bg-cyan-950 text-cyan-300 border border-cyan-800">3D schematic</button>
+            <button onclick="setMoleculeViewMode('schematic')" id="viewMode2DBtn" data-i18n="view2D" class="px-3 py-1 rounded-lg text-slate-400 hover:text-white">2D schematic</button>
             <button onclick="reset3DCamera()" class="p-1 text-slate-400 hover:text-cyan-300 ml-1" title="Reset Camera">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
             </button>
@@ -263,45 +249,31 @@
           <!-- 2D Canvas Fallback / Toggle -->
           <canvas id="structureCanvas" width="550" height="340" class="w-full h-full object-contain hidden"></canvas>
 
-          <!-- Top-Left Simulation Overlay Badges -->
-          <div class="absolute top-3 left-3 flex flex-col space-y-1.5 pointer-events-none z-10 text-[11px] font-mono">
-            <span class="px-2.5 py-1 rounded-lg bg-slate-900/80 border border-slate-800 text-cyan-300 flex items-center space-x-1.5 backdrop-blur-md">
-              <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
-              <span>Thermal Agitation: <strong id="vibeRateDisplay">Moderate</strong></span>
-            </span>
-            <span class="px-2.5 py-1 rounded-lg bg-slate-900/80 border border-slate-800 text-slate-300 flex items-center space-x-1.5 backdrop-blur-md">
-              <span>Bond Vibration Amp: <strong id="vibeAmpDisplay" class="text-teal-300">0.05 Å</strong></span>
-            </span>
-          </div>
 
           <!-- Bottom-Right Instructions Overlay -->
-          <div class="absolute bottom-3 right-3 text-[10px] font-mono text-slate-400 bg-slate-900/80 border border-slate-800 px-3 py-1.5 rounded-lg pointer-events-none backdrop-blur-md">
+          <div class="absolute bottom-3 right-3 text-[10px] font-mono text-slate-400 bg-slate-900/80 border border-slate-800 px-3 py-1.5 rounded-lg pointer-events-none backdrop-blur-md" data-i18n="controlsHint">
             Drag to Rotate • Scroll to Zoom • Pan with Right-Click
           </div>
 
-          <!-- Atom Color Legend -->
-          <div class="absolute bottom-3 left-3 flex items-center space-x-3 text-[10px] font-mono text-slate-300 bg-slate-900/80 border border-slate-800 px-3 py-1.5 rounded-lg pointer-events-none backdrop-blur-md">
-            <span class="flex items-center space-x-1"><span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span><span>Carbon</span></span>
-            <span class="flex items-center space-x-1"><span class="w-2.5 h-2.5 rounded-full bg-red-500"></span><span>Oxygen</span></span>
-            <span class="flex items-center space-x-1"><span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span><span>Nitrogen</span></span>
-            <span class="flex items-center space-x-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span><span>Fluorine</span></span>
-            <span class="flex items-center space-x-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span><span>Endlink (*)</span></span>
+          <!-- Dynamic Atom Color Legend -->
+          <div id="atomColorLegend" class="absolute bottom-3 left-3 flex items-center space-x-2.5 text-[10px] font-mono text-slate-300 bg-slate-900/85 border border-slate-800 px-2.5 py-1.5 rounded-lg pointer-events-none backdrop-blur-md">
+            <!-- Dynamically populated -->
           </div>
         </div>
 
-        <!-- 3D Controls Bar (Auto-rotate toggle, Temperature Link) -->
+        <!-- Viewer controls -->
         <div class="flex items-center justify-between text-xs text-slate-400 px-1 pt-1">
           <div class="flex items-center space-x-3">
             <label class="flex items-center space-x-1.5 cursor-pointer select-none">
               <input type="checkbox" id="autoRotateCheck" checked onchange="toggleAutoRotate(this.checked)" class="accent-cyan-500 rounded">
-              <span>Auto-Spin</span>
-            </label>
+              <span data-i18n="autoSpin">Auto-Spin</span>
             <label class="flex items-center space-x-1.5 cursor-pointer select-none">
-              <input type="checkbox" id="thermalMotionCheck" checked onchange="toggleThermalMotion(this.checked)" class="accent-cyan-500 rounded">
-              <span>Dynamic Thermal Jitter</span>
+              <input type="checkbox" id="visualMotionCheck" checked onchange="toggleVisualMotion(this.checked)" class="accent-cyan-500 rounded">
+              <span>Gentle motion</span>
+            </label>
             </label>
           </div>
-          <span class="text-[11px] font-mono text-cyan-400">Real-time WebGL Engine</span>
+          <span class="text-[11px] font-mono text-cyan-400">Illustrative schematic</span>
         </div>
 
       </div>
@@ -316,8 +288,8 @@
         <div class="absolute top-0 right-0 w-24 h-24 bg-cyan-500/10 rounded-full blur-2xl pointer-events-none"></div>
         <div class="flex justify-between items-start mb-3">
           <div>
-            <span class="text-xs font-semibold uppercase tracking-wider text-cyan-400">Glass Transition Temperature</span>
-            <h3 class="text-2xl font-extrabold text-white font-mono mt-0.5" id="tgValueDisplay">100.0 °C</h3>
+            <span class="text-xs font-semibold uppercase tracking-wider text-cyan-400" data-i18n="tgTitle">Glass Transition Temperature</span>
+            <h3 class="text-2xl font-extrabold text-white font-mono mt-0.5" id="tgValueDisplay">Not available</h3>
             <p class="text-xs text-slate-400" id="tgKelvinDisplay">373.15 K</p>
           </div>
           <div class="p-2.5 rounded-xl bg-cyan-950/80 border border-cyan-800 text-cyan-400">
@@ -326,18 +298,8 @@
         </div>
         <div class="space-y-2 border-t border-slate-800/80 pt-3 text-xs">
           <div class="flex justify-between text-slate-300">
-            <span>Model Confidence:</span>
-            <span id="tgConf" class="font-mono text-emerald-400 font-bold">96.8%</span>
-          </div>
-          <div class="flex justify-between text-slate-300">
-            <span>Confidence Interval:</span>
-            <span id="tgUncert" class="font-mono text-slate-400">± 2.1 °C</span>
-          </div>
-          <div class="flex justify-between items-center">
-            <span class="text-slate-400">State Regime:</span>
-            <span id="tgTag" class="px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-950 text-cyan-300 border border-cyan-800">
-              Rigid Glassy
-            </span>
+            <span data-i18n="propSource">Property Source:</span>
+            <span id="tgSourceDisplay" class="font-mono text-cyan-300 font-bold px-2 py-0.5 rounded bg-cyan-950/80 border border-cyan-800">—</span>
           </div>
         </div>
       </div>
@@ -347,9 +309,9 @@
         <div class="absolute top-0 right-0 w-24 h-24 bg-teal-500/10 rounded-full blur-2xl pointer-events-none"></div>
         <div class="flex justify-between items-start mb-3">
           <div>
-            <span class="text-xs font-semibold uppercase tracking-wider text-teal-400">Melting Point (Tm)</span>
-            <h3 class="text-2xl font-extrabold text-white font-mono mt-0.5" id="tmValueDisplay">Amorphous</h3>
-            <p class="text-xs text-slate-400" id="tmKelvinDisplay">N/A (No First-Order Phase Transition)</p>
+            <span class="text-xs font-semibold uppercase tracking-wider text-teal-400" data-i18n="tmTitle">Melting Point (Tm)</span>
+            <h3 class="text-2xl font-extrabold text-white font-mono mt-0.5" id="tmValueDisplay">Not available</h3>
+            <p class="text-xs text-slate-400" id="tmKelvinDisplay">No Tm value recorded in CSV</p>
           </div>
           <div class="p-2.5 rounded-xl bg-teal-950/80 border border-teal-800 text-teal-400">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
@@ -357,18 +319,8 @@
         </div>
         <div class="space-y-2 border-t border-slate-800/80 pt-3 text-xs">
           <div class="flex justify-between text-slate-300">
-            <span>Crystallinity Fraction:</span>
-            <span id="tmCrystallinity" class="font-mono text-amber-400 font-bold">0% (Amorphous)</span>
-          </div>
-          <div class="flex justify-between text-slate-300">
-            <span>Crystalline Domain:</span>
-            <span id="tmUncert" class="font-mono text-slate-400">N/A</span>
-          </div>
-          <div class="flex justify-between items-center">
-            <span class="text-slate-400">Phase Classification:</span>
-            <span id="tmTag" class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300">
-              Non-Crystalline
-            </span>
+            <span data-i18n="propSource">Property Source:</span>
+            <span id="tmSourceDisplay" class="font-mono text-teal-300 font-bold px-2 py-0.5 rounded bg-teal-950/80 border border-teal-800">CSV Record</span>
           </div>
         </div>
       </div>
@@ -378,9 +330,9 @@
         <div class="absolute top-0 right-0 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
         <div class="flex justify-between items-start mb-3">
           <div>
-            <span class="text-xs font-semibold uppercase tracking-wider text-amber-400">Decomposition Temperature (Td,5%)</span>
-            <h3 class="text-2xl font-extrabold text-white font-mono mt-0.5" id="tdValueDisplay">385.0 °C</h3>
-            <p class="text-xs text-slate-400" id="tdKelvinDisplay">658.15 K (5% Mass Loss in N₂)</p>
+            <span class="text-xs font-semibold uppercase tracking-wider text-amber-400" data-i18n="tdTitle">Decomposition Temperature (Td)</span>
+            <h3 class="text-2xl font-extrabold text-white font-mono mt-0.5" id="tdValueDisplay">Not available</h3>
+            <p class="text-xs text-slate-400" id="tdKelvinDisplay">—</p>
           </div>
           <div class="p-2.5 rounded-xl bg-amber-950/80 border border-amber-800 text-amber-400">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/></svg>
@@ -388,131 +340,20 @@
         </div>
         <div class="space-y-2 border-t border-slate-800/80 pt-3 text-xs">
           <div class="flex justify-between text-slate-300">
-            <span>Thermal Stability Class:</span>
-            <span id="tdRating" class="font-mono text-emerald-400 font-bold">High Stability</span>
-          </div>
-          <div class="flex justify-between text-slate-300">
-            <span>Confidence Interval:</span>
-            <span id="tdUncert" class="font-mono text-slate-400">± 4.5 °C</span>
-          </div>
-          <div class="flex justify-between items-center">
-            <span class="text-slate-400">Thermal Grade:</span>
-            <span id="tdTag" class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-950 text-amber-300 border border-amber-800">
-              Engineering Plastic
-            </span>
+            <span data-i18n="propSource">Property Source:</span>
+            <span id="tdSourceDisplay" class="font-mono text-amber-300 font-bold px-2 py-0.5 rounded bg-amber-950/80 border border-amber-800">PolyBench (CSV)</span>
           </div>
         </div>
       </div>
 
     </div>
 
-    <!-- DYNAMIC THERMAL REGIMES VISUALIZER (Interactive Phase Gauge Slider) -->
-    <div class="glass-card rounded-2xl p-6 border border-slate-800 space-y-4">
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-2">
-        <div>
-          <h3 class="text-base font-bold text-white flex items-center space-x-2">
-            <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-            <span>Interactive Viscoelastic Phase & Temperature Probe</span>
-          </h3>
-          <p class="text-xs text-slate-400">Slide temperature probe to directly drive 3D atomic kinetic jitter and observe viscoelastic regime transitions</p>
-        </div>
-        
-        <div class="flex items-center space-x-3 bg-slate-900 border border-slate-800 px-3.5 py-1.5 rounded-xl font-mono text-sm">
-          <span class="text-slate-400 text-xs">Probe Temperature:</span>
-          <span id="probeTempText" class="text-cyan-400 font-bold">120 °C</span>
-          <span id="probeKelvinText" class="text-slate-500 text-xs">(393.15 K)</span>
-        </div>
-      </div>
-
-      <!-- Multi-Zone Phase Bar with Markers -->
-      <div class="relative py-4">
-        <!-- Multi-colored Gradient Phase Track -->
-        <div class="h-7 w-full rounded-xl thermal-track shadow-inner relative flex overflow-hidden border border-slate-700/60">
-          <div id="phaseRegionGlass" class="h-full bg-blue-500/35 border-r border-white/40 flex items-center justify-center text-[10px] font-bold text-white uppercase tracking-wider">
-            Glassy Solid
-          </div>
-          <div id="phaseRegionRubber" class="h-full bg-cyan-500/35 border-r border-white/40 flex items-center justify-center text-[10px] font-bold text-white uppercase tracking-wider">
-            Rubbery / Viscoelastic
-          </div>
-          <div id="phaseRegionMelt" class="h-full bg-amber-500/35 border-r border-white/40 flex items-center justify-center text-[10px] font-bold text-white uppercase tracking-wider">
-            Viscous Melt Flow
-          </div>
-          <div id="phaseRegionDegradation" class="h-full bg-red-600/40 flex items-center justify-center text-[10px] font-bold text-white uppercase tracking-wider">
-            Pyrolysis / Scission
-          </div>
-        </div>
-
-        <!-- Interactive Slider -->
-        <input type="range" id="tempProbeSlider" min="-50" max="550" value="120" oninput="updateThermalProbe(this.value)" class="w-full absolute inset-0 opacity-0 cursor-pointer h-7">
-
-        <!-- Temperature Markers (Tg, Tm, Td indicators) -->
-        <div class="relative w-full h-8 mt-1 text-[11px] font-mono">
-          <div id="markerTg" class="absolute -translate-x-1/2 flex flex-col items-center top-0 transition-all">
-            <span class="w-0.5 h-3 bg-cyan-400"></span>
-            <span class="text-cyan-300 font-bold">Tg: <span id="markerTgText">100°C</span></span>
-          </div>
-          <div id="markerTm" class="absolute -translate-x-1/2 flex flex-col items-center top-0 transition-all">
-            <span class="w-0.5 h-3 bg-teal-400"></span>
-            <span class="text-teal-300 font-bold">Tm: <span id="markerTmText">Amorphous</span></span>
-          </div>
-          <div id="markerTd" class="absolute -translate-x-1/2 flex flex-col items-center top-0 transition-all">
-            <span class="w-0.5 h-3 bg-amber-400"></span>
-            <span class="text-amber-300 font-bold">Td: <span id="markerTdText">385°C</span></span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Probe Phase Status Card -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-slate-900/90 rounded-xl border border-slate-800 text-xs">
-        <div>
-          <span class="text-slate-400 block mb-0.5">Physical Phase</span>
-          <span id="probeStateTitle" class="font-bold text-cyan-300 text-sm">Rubbery Viscoelastic State</span>
-        </div>
-        <div>
-          <span class="text-slate-400 block mb-0.5">Elastic Storage Modulus (E')</span>
-          <span id="probeModulus" class="font-mono text-emerald-400 font-bold">~ 5.2 MPa</span>
-        </div>
-        <div>
-          <span class="text-slate-400 block mb-0.5">Segmental Dynamics</span>
-          <span id="probeMobility" class="text-slate-200">Micro-Brownian rotational segment motions active</span>
-        </div>
-        <div>
-          <span class="text-slate-400 block mb-0.5">Manufacturing & Processing Window</span>
-          <span id="probeAppWindow" class="text-amber-300 font-semibold">Thermoforming & Vacuum Forming</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- EXPLAINABLE AI: FUNCTIONAL GROUP IMPACT BREAKDOWN -->
-    <div class="glass-card rounded-2xl p-6 border border-slate-800 space-y-4">
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
-        <div>
-          <h3 class="text-base font-bold text-white flex items-center space-x-2">
-            <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-            <span>Substructure Feature Attribution & Impact</span>
-          </h3>
-          <p class="text-xs text-slate-400">Neural network contribution scores explaining structural factors shifting transition temperatures</p>
-        </div>
-
-        <div class="flex items-center space-x-2 bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs">
-          <button onclick="switchShapTarget('tg')" id="shapBtnTg" class="px-3 py-1.5 rounded-lg font-semibold bg-cyan-950 text-cyan-300 border border-cyan-800">Tg Contribution</button>
-          <button onclick="switchShapTarget('tm')" id="shapBtnTm" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white">Tm Contribution</button>
-          <button onclick="switchShapTarget('td')" id="shapBtnTd" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white">Td Contribution</button>
-        </div>
-      </div>
-
-      <!-- Feature Bars -->
-      <div id="shapBarsContainer" class="space-y-3 pt-2">
-        <!-- Dynamically populated -->
-      </div>
-    </div>
-
-  </main>
+    </main>
 
   <!-- ==================== FOOTER ==================== -->
   <footer class="border-t border-slate-800/80 bg-slate-950 py-4 text-center text-xs text-slate-500">
     <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-2">
-      <p>© 2026 PolyStorage — .NET 10 Polymer Intelligence & Molecular Dynamics</p>
+      <p>© 2026 PolyStorage — Polymer Database Lookup</p>
       <div class="flex space-x-4">
         <a href="https://github.com/Trestifer/PolyStorage" target="_blank" class="hover:text-cyan-400 transition">GitHub Repository</a>
         <span class="text-slate-700">•</span>
@@ -529,387 +370,22 @@
 
   <!-- ==================== CLIENT JAVASCRIPT & THREE.JS ENGINE ==================== -->
   <script>
-    const POLYMER_DATABASE = {
-      ps: {
-        name: "Polystyrene (PS)",
-        psmiles: "*CC(*)c1ccccc1",
-        class: "Amorphous Thermoplastic",
-        tg: 100.0,
-        tg_uncertainty: 2.1,
-        tg_conf: "96.8%",
-        tm: null,
-        tm_crystallinity: "0% (Amorphous)",
-        td: 385.0,
-        td_uncertainty: 4.5,
-        radar: [85, 10, 82, 88, 12, 65],
-        shap: {
-          tg: [
-            { group: "Phenyl Pendant Ring", impact: "+46 °C", pos: true, desc: "Restricts backbone torsional freedom significantly" },
-            { group: "Ethylene Main Chain", impact: "-14 °C", pos: false, desc: "Provides moderate aliphatic backbone flexibility" },
-            { group: "Atactic Stereocenter", impact: "-8 °C", pos: false, desc: "Suppresses close crystal packing" }
-          ],
-          tm: [
-            { group: "Steric Disordering", impact: "Amorphous", pos: false, desc: "Atactic phenyl rings suppress crystallite formation" }
-          ],
-          td: [
-            { group: "Aromatic Ring Stability", impact: "+65 °C", pos: true, desc: "High aromatic resonance stabilizes radical intermediates" },
-            { group: "Tertiary C-H Bond", impact: "-25 °C", pos: false, desc: "Primary initiation site for thermal depolymerization" }
-          ]
-        },
-        // 3D Ball & Stick Coordinates
-        atoms3D: [
-          { elem: 'C', x: -4.0, y: 0, z: 0, link: true }, // * link
-          { elem: 'C', x: -2.0, y: 0.8, z: 0 },           // CH2
-          { elem: 'C', x: 0.0, y: -0.2, z: 0.2 },         // CH
-          { elem: 'C', x: 2.0, y: 0.8, z: 0 },           // * link
-          // Phenyl Ring
-          { elem: 'C', x: 0.0, y: -2.0, z: 0.5 },
-          { elem: 'C', x: 1.2, y: -2.8, z: 0.8 },
-          { elem: 'C', x: 1.2, y: -4.2, z: 1.1 },
-          { elem: 'C', x: 0.0, y: -4.9, z: 1.1 },
-          { elem: 'C', x: -1.2, y: -4.2, z: 0.8 },
-          { elem: 'C', x: -1.2, y: -2.8, z: 0.5 }
-        ],
-        bonds3D: [
-          [0, 1], [1, 2], [2, 3],
-          [2, 4], [4, 5], [5, 6], [6, 7], [7, 8], [8, 9], [9, 4]
-        ]
-      },
-      pmma: {
-        name: "Poly(methyl methacrylate) (PMMA)",
-        psmiles: "*CC(*)(C)C(=O)OC",
-        class: "Acrylic Glass Thermoplastic",
-        tg: 105.0,
-        tg_uncertainty: 2.5,
-        tg_conf: "95.4%",
-        tm: null,
-        tm_crystallinity: "0% (Amorphous)",
-        td: 320.0,
-        td_uncertainty: 5.2,
-        radar: [78, 25, 0, 72, 45, 80],
-        shap: {
-          tg: [
-            { group: "Alpha-Methyl Group", impact: "+35 °C", pos: true, desc: "Steric crowding impedes main-chain bond rotation" },
-            { group: "Ester Side Chain", impact: "+22 °C", pos: true, desc: "Dipole interactions elevate glassy transition energy" },
-            { group: "Backbone C-C", impact: "-12 °C", pos: false, desc: "Aliphatic segment flexibility" }
-          ],
-          tm: [
-            { group: "Bulky Ester Geometry", impact: "Amorphous", pos: false, desc: "Bulky ester groups frustrate crystallization" }
-          ],
-          td: [
-            { group: "Ester Unzipping", impact: "-40 °C", pos: false, desc: "Undergoes unzipping depolymerization at elevated temperature" },
-            { group: "Quaternary Carbon", impact: "+15 °C", pos: true, desc: "Absence of tertiary hydrogen retards oxidation" }
-          ]
-        },
-        atoms3D: [
-          { elem: 'C', x: -3.5, y: 0, z: 0, link: true },
-          { elem: 'C', x: -1.8, y: 0.7, z: 0 },
-          { elem: 'C', x: 0.0, y: -0.1, z: 0 },
-          { elem: 'C', x: 1.8, y: 0.7, z: 0, link: true },
-          // Alpha-methyl
-          { elem: 'C', x: 0.0, y: 1.6, z: -0.5 },
-          // Carbonyl C=O
-          { elem: 'C', x: 0.2, y: -1.6, z: 0.3 },
-          { elem: 'O', x: -0.6, y: -2.3, z: 0.8 },
-          // Ester O-CH3
-          { elem: 'O', x: 1.5, y: -1.9, z: 0.2 },
-          { elem: 'C', x: 2.0, y: -3.2, z: 0.5 }
-        ],
-        bonds3D: [
-          [0, 1], [1, 2], [2, 3],
-          [2, 4], [2, 5], [5, 6], [5, 7], [7, 8]
-        ]
-      },
-      pet: {
-        name: "Polyethylene Terephthalate (PET)",
-        psmiles: "*OC(=O)c1ccc(cc1)C(=O)OCCCC*",
-        class: "Semi-Crystalline Polyester",
-        tg: 78.0,
-        tg_uncertainty: 1.8,
-        tg_conf: "97.5%",
-        tm: 260.0,
-        tm_crystallinity: "42% (Semi-Crystalline)",
-        td: 410.0,
-        td_uncertainty: 3.8,
-        radar: [72, 35, 68, 70, 52, 45],
-        shap: {
-          tg: [
-            { group: "Terephthaloyl Core", impact: "+42 °C", pos: true, desc: "Para-phenylene ring stiffens polymer backbone" },
-            { group: "Flexible Ethylene Spacer", impact: "-24 °C", pos: false, desc: "-CH2-CH2- imparts segmental flexibility" },
-            { group: "Ester Carbonyl Dipole", impact: "+18 °C", pos: true, desc: "Interchain dipole attraction" }
-          ],
-          tm: [
-            { group: "Symmetrical Ring Packing", impact: "+180 °C", pos: true, desc: "Symmetry facilitates lamellar crystal nucleation" }
-          ],
-          td: [
-            { group: "Aromatic Ester Linkage", impact: "+70 °C", pos: true, desc: "Resists oxidative breakdown in inert atmosphere" }
-          ]
-        },
-        atoms3D: [
-          { elem: 'O', x: -5.0, y: 0.2, z: 0, link: true },
-          { elem: 'C', x: -3.7, y: -0.4, z: 0 },
-          { elem: 'O', x: -3.7, y: -1.7, z: 0.3 },
-          // Terephthaloyl Ring
-          { elem: 'C', x: -2.3, y: 0.2, z: 0 },
-          { elem: 'C', x: -1.4, y: 1.3, z: 0.2 },
-          { elem: 'C', x: 0.0, y: 1.3, z: 0.2 },
-          { elem: 'C', x: 0.8, y: 0.2, z: 0 },
-          { elem: 'C', x: 0.0, y: -0.9, z: -0.2 },
-          { elem: 'C', x: -1.4, y: -0.9, z: -0.2 },
-          // Right ester
-          { elem: 'C', x: 2.2, y: 0.2, z: 0 },
-          { elem: 'O', x: 2.7, y: 1.4, z: 0.3 },
-          { elem: 'O', x: 3.1, y: -0.8, z: -0.2 },
-          // Ethylene
-          { elem: 'C', x: 4.4, y: -0.4, z: 0 },
-          { elem: 'C', x: 5.4, y: 0.5, z: 0.3, link: true }
-        ],
-        bonds3D: [
-          [0, 1], [1, 2], [1, 3],
-          [3, 4], [4, 5], [5, 6], [6, 7], [7, 8], [8, 3],
-          [6, 9], [9, 10], [9, 11], [11, 12], [12, 13]
-        ]
-      },
-      nylon66: {
-        name: "Nylon 6,6 (Polyamide 6,6)",
-        psmiles: "*NCCCCCCN*C(=O)CCCC(=O)*",
-        class: "Semi-Crystalline Polyamide",
-        tg: 50.0,
-        tg_uncertainty: 2.0,
-        tg_conf: "98.1%",
-        tm: 265.0,
-        tm_crystallinity: "55% (High Crystallinity)",
-        td: 360.0,
-        td_uncertainty: 4.0,
-        radar: [55, 98, 0, 60, 85, 30],
-        shap: {
-          tg: [
-            { group: "Interchain H-Bonding (NH..O)", impact: "+45 °C", pos: true, desc: "Dense hydrogen bonding network anchors chains" },
-            { group: "Hexamethylene Spacers", impact: "-35 °C", pos: false, desc: "Long aliphatic segments lower glassy transition" }
-          ],
-          tm: [
-            { group: "Amide Crystal Lattice", impact: "+215 °C", pos: true, desc: "Extended hydrogen-bonded beta-sheet architecture" }
-          ],
-          td: [
-            { group: "Amide Cleavage", impact: "-20 °C", pos: false, desc: "Peptide linkage susceptible to scission at high thermal loads" }
-          ]
-        },
-        atoms3D: [
-          { elem: 'N', x: -5.0, y: 0.5, z: 0, link: true },
-          { elem: 'C', x: -3.8, y: -0.3, z: 0.2 },
-          { elem: 'C', x: -2.6, y: 0.5, z: -0.2 },
-          { elem: 'C', x: -1.4, y: -0.3, z: 0.2 },
-          { elem: 'C', x: -0.2, y: 0.5, z: -0.2 },
-          { elem: 'N', x: 1.0, y: -0.3, z: 0.1 },
-          { elem: 'C', x: 2.2, y: 0.3, z: 0 },
-          { elem: 'O', x: 2.4, y: 1.5, z: 0.2 },
-          { elem: 'C', x: 3.4, y: -0.6, z: -0.2 },
-          { elem: 'C', x: 4.6, y: 0.2, z: 0.2, link: true }
-        ],
-        bonds3D: [
-          [0, 1], [1, 2], [2, 3], [3, 4], [4, 5],
-          [5, 6], [6, 7], [6, 8], [8, 9]
-        ]
-      },
-      peek: {
-        name: "Polyether Ether Ketone (PEEK)",
-        psmiles: "*Oc1ccc(cc1)Oc2ccc(cc2)C(=O)c3ccc(cc3)*",
-        class: "High-Performance Polyaryletherketone",
-        tg: 143.0,
-        tg_uncertainty: 1.5,
-        tg_conf: "99.1%",
-        tm: 343.0,
-        tm_crystallinity: "35% (Semi-Crystalline)",
-        td: 575.0,
-        td_uncertainty: 3.0,
-        radar: [95, 20, 95, 92, 40, 75],
-        shap: {
-          tg: [
-            { group: "Tri-Aromatic Core", impact: "+75 °C", pos: true, desc: "Three 1,4-phenylene rings generate extreme rigidity" },
-            { group: "Ether Linkage (-O-)", impact: "-10 °C", pos: false, desc: "Flexible ether hinge slightly eases rotational barrier" },
-            { group: "Benzophenone Carbonyl", impact: "+28 °C", pos: true, desc: "Rigid polar resonance structure" }
-          ],
-          tm: [
-            { group: "Aromatic Stacking", impact: "+200 °C", pos: true, desc: "Dense pi-pi crystalline domain formation" }
-          ],
-          td: [
-            { group: "Polyaryl Backbone", impact: "+190 °C", pos: true, desc: "Exceptional resistance to thermal degradation" }
-          ]
-        },
-        atoms3D: [
-          { elem: 'O', x: -5.5, y: 0, z: 0, link: true },
-          // Ring 1
-          { elem: 'C', x: -4.3, y: 0.5, z: 0 },
-          { elem: 'C', x: -3.3, y: 1.3, z: 0.2 },
-          { elem: 'C', x: -2.1, y: 0.7, z: 0.2 },
-          { elem: 'C', x: -1.9, y: -0.6, z: 0 },
-          { elem: 'C', x: -2.9, y: -1.4, z: -0.2 },
-          { elem: 'C', x: -4.1, y: -0.8, z: -0.2 },
-          // Ether 2
-          { elem: 'O', x: -0.7, y: -1.1, z: 0 },
-          // Ring 2
-          { elem: 'C', x: 0.5, y: -0.6, z: 0 },
-          { elem: 'C', x: 1.5, y: -1.3, z: 0.2 },
-          { elem: 'C', x: 2.7, y: -0.8, z: 0.2 },
-          { elem: 'C', x: 2.9, y: 0.5, z: 0 },
-          { elem: 'C', x: 1.9, y: 1.2, z: -0.2 },
-          { elem: 'C', x: 0.7, y: 0.7, z: -0.2 },
-          // Carbonyl
-          { elem: 'C', x: 4.2, y: 1.0, z: 0 },
-          { elem: 'O', x: 4.5, y: 2.2, z: 0.2 },
-          { elem: 'C', x: 5.3, y: 0.2, z: 0, link: true }
-        ],
-        bonds3D: [
-          [0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 1],
-          [4, 7], [7, 8], [8, 9], [9, 10], [10, 11], [11, 12], [12, 13], [13, 8],
-          [11, 14], [14, 15], [14, 16]
-        ]
-      },
-      pc: {
-        name: "Polycarbonate (BPA-PC)",
-        psmiles: "*OC(=O)Oc1ccc(cc1)C(C)(C)c2ccc(cc2)*",
-        class: "Amorphous Engineering Thermoplastic",
-        tg: 147.0,
-        tg_uncertainty: 2.2,
-        tg_conf: "97.8%",
-        tm: null,
-        tm_crystallinity: "0% (Amorphous)",
-        td: 460.0,
-        td_uncertainty: 4.8,
-        radar: [90, 15, 85, 90, 35, 82],
-        shap: {
-          tg: [
-            { group: "Isopropylidene Bridge C(CH3)2", impact: "+48 °C", pos: true, desc: "Steric bulk prohibits conformational chain transition" },
-            { group: "Bisphenol Phenylene Rings", impact: "+40 °C", pos: true, desc: "Aromatic stiffness imparts high mechanical strength" },
-            { group: "Carbonate Linkage", impact: "+20 °C", pos: true, desc: "Polar rigid ester-like linker" }
-          ],
-          tm: [
-            { group: "Steric Kink", impact: "Amorphous", pos: false, desc: "Bent bridge angle suppresses crystallite nucleation" }
-          ],
-          td: [
-            { group: "Bisphenol Core Stability", impact: "+115 °C", pos: true, desc: "High aromatic bond dissociation energy" }
-          ]
-        },
-        atoms3D: [
-          { elem: 'O', x: -5.0, y: 0, z: 0, link: true },
-          { elem: 'C', x: -4.0, y: 0.6, z: 0 },
-          { elem: 'O', x: -4.1, y: 1.8, z: 0.2 },
-          { elem: 'O', x: -2.8, y: -0.1, z: 0 },
-          // Ring 1
-          { elem: 'C', x: -1.7, y: -0.8, z: 0 },
-          { elem: 'C', x: -1.5, y: -2.1, z: 0.2 },
-          { elem: 'C', x: -0.3, y: -2.7, z: 0.2 },
-          { elem: 'C', x: 0.7, y: -2.0, z: 0 },
-          { elem: 'C', x: 0.5, y: -0.7, z: -0.2 },
-          { elem: 'C', x: -0.7, y: -0.1, z: -0.2 },
-          // Quaternary Bridge
-          { elem: 'C', x: 2.0, y: -2.7, z: 0 },
-          { elem: 'C', x: 2.2, y: -3.8, z: -1.0 },
-          { elem: 'C', x: 2.2, y: -3.8, z: 1.0 },
-          // Ring 2
-          { elem: 'C', x: 3.2, y: -1.9, z: 0 },
-          { elem: 'C', x: 4.4, y: -2.5, z: 0.2 },
-          { elem: 'C', x: 5.5, y: -1.8, z: 0, link: true }
-        ],
-        bonds3D: [
-          [0, 1], [1, 2], [1, 3], [3, 4],
-          [4, 5], [5, 6], [6, 7], [7, 8], [8, 9], [9, 4],
-          [7, 10], [10, 11], [10, 12], [10, 13],
-          [13, 14], [14, 15]
-        ]
-      },
-      ptfe: {
-        name: "Polytetrafluoroethylene (PTFE)",
-        psmiles: "*C(F)(F)C(*)(F)F",
-        class: "Fluoropolymer",
-        tg: 115.0,
-        tg_uncertainty: 3.0,
-        tg_conf: "94.0%",
-        tm: 327.0,
-        tm_crystallinity: "90% (Ultra High)",
-        td: 520.0,
-        td_uncertainty: 5.0,
-        radar: [88, 0, 0, 65, 10, 90],
-        shap: {
-          tg: [
-            { group: "Perfluorinated C-F Helix", impact: "+65 °C", pos: true, desc: "Dense fluorine atoms lock polymer into a rigid cylinder" }
-          ],
-          tm: [
-            { group: "Hexagonal Rod Packing", impact: "+212 °C", pos: true, desc: "Helical macromolecules pack tightly into crystals" }
-          ],
-          td: [
-            { group: "C-F Bond Strength", impact: "+220 °C", pos: true, desc: "485 kJ/mol bond dissociation energy resists heat" }
-          ]
-        },
-        atoms3D: [
-          { elem: 'C', x: -3.5, y: 0, z: 0, link: true },
-          { elem: 'C', x: -1.2, y: 0.4, z: 0 },
-          { elem: 'F', x: -1.2, y: 1.7, z: 0.4 },
-          { elem: 'F', x: -1.2, y: -0.6, z: 1.1 },
-          { elem: 'C', x: 1.2, y: -0.4, z: 0 },
-          { elem: 'F', x: 1.2, y: -1.7, z: -0.4 },
-          { elem: 'F', x: 1.2, y: 0.6, z: -1.1 },
-          { elem: 'C', x: 3.5, y: 0, z: 0, link: true }
-        ],
-        bonds3D: [
-          [0, 1], [1, 2], [1, 3], [1, 4],
-          [4, 5], [4, 6], [4, 7]
-        ]
-      },
-      pp: {
-        name: "Isotactic Polypropylene (iPP)",
-        psmiles: "*CC(*)(C)",
-        class: "Semi-Crystalline Polyolefin",
-        tg: -10.0,
-        tg_uncertainty: 1.2,
-        tg_conf: "98.5%",
-        tm: 165.0,
-        tm_crystallinity: "60% (Semi-Crystalline)",
-        td: 330.0,
-        td_uncertainty: 4.0,
-        radar: [40, 0, 0, 50, 0, 35],
-        shap: {
-          tg: [
-            { group: "Flexible Alkyl Chain", impact: "-45 °C", pos: false, desc: "Aliphatic C-C bonds rotate easily below ambient temperatures" },
-            { group: "Pendant Methyl", impact: "+15 °C", pos: true, desc: "Adds modest rotational resistance over polyethylene" }
-          ],
-          tm: [
-            { group: "3_1 Helical Crystallization", impact: "+175 °C", pos: true, desc: "Regular stereochemistry forms monoclinic crystals" }
-          ],
-          td: [
-            { group: "Tertiary C-H Scission", impact: "-30 °C", pos: false, desc: "Susceptible to thermo-oxidative radical degradation" }
-          ]
-        },
-        atoms3D: [
-          { elem: 'C', x: -3.5, y: 0, z: 0, link: true },
-          { elem: 'C', x: -1.5, y: 0.6, z: 0 },
-          { elem: 'C', x: 0.5, y: -0.4, z: 0 },
-          { elem: 'C', x: 0.5, y: -2.0, z: 0.4 }, // Pendant CH3
-          { elem: 'C', x: 2.5, y: 0.6, z: 0, link: true }
-        ],
-        bonds3D: [
-          [0, 1], [1, 2], [2, 3], [2, 4]
-        ]
-      }
-    };
+    let currentPolyData={name:'Enter a polymer to begin',psmiles:'',class:'Search the CSV or enter a repeat-unit string',isCsvSource:false,tg:null,tm:null,td:null,tg_source:'',tm_source:'',td_source:'',atoms3D:[],bonds3D:[]};
 
-    let currentPolyData = POLYMER_DATABASE.ps;
-    let currentDP = 120;
-    let currentProbeTemp = 120;
-    let currentShapTarget = 'tg';
-    let miniRadarChartInstance = null;
-
-    // Three.js State
+// Three.js State
     let scene, camera, renderer, controls;
     let moleculeGroup = null;
     let baseAtomPositions = [];
     let isAutoRotating = true;
-    let isThermalMotionActive = true;
+    let isVisualMotionActive = true;
+    
     let clock = new THREE.Clock();
 
     window.onload = function() {
+      currentPolyData = { ...currentPolyData, name: 'Polystyrene (PS) — example', psmiles: '*CC(*)c1ccccc1', class: 'Illustrative repeat-unit example', ...generate3DFromSmiles('*CC(*)c1ccccc1') };
+      document.getElementById('psmilesInput').value = currentPolyData.psmiles;
       updatePolymerView(currentPolyData);
-      initMiniRadar();
+      
       initThreeJS();
       render3DMolecule(currentPolyData);
     };
@@ -991,22 +467,8 @@
         moleculeGroup.rotation.x = Math.sin(time * 0.15) * 0.06;
       }
 
-      // Dynamic Thermal Jitter: gentle atomic vibration linked to temperature
-      if (moleculeGroup && isThermalMotionActive && baseAtomPositions.length > 0) {
-        const normT = Math.max(0, (currentProbeTemp + 50) / 600);
-        const amp = 0.008 + normT * 0.045; // softer amplitude
-
-        let atomIndex = 0;
-        moleculeGroup.children.forEach(child => {
-          if (child.isMesh && child.geometry.type === 'SphereGeometry' && baseAtomPositions[atomIndex]) {
-            const base = baseAtomPositions[atomIndex];
-            const freq = 4.0 + normT * 6.0; // relaxed frequency
-            child.position.x = base.x + Math.sin(time * freq + atomIndex * 1.2) * amp;
-            child.position.y = base.y + Math.cos(time * freq * 0.9 + atomIndex * 1.5) * amp;
-            child.position.z = base.z + Math.sin(time * freq * 0.6 + atomIndex) * amp;
-            atomIndex++;
-          }
-        });
+      if (moleculeGroup) {
+        moleculeGroup.rotation.z = isVisualMotionActive ? Math.sin(time * 1.3) * 0.025 : 0;
       }
 
       controls.update();
@@ -1023,7 +485,7 @@
       moleculeGroup = new THREE.Group();
       baseAtomPositions = [];
 
-      const atoms = data.atoms3D || [
+      const atoms = data.atoms3D && data.atoms3D.length ? data.atoms3D : [
         { elem: 'C', x: -3, y: 0, z: 0, link: true },
         { elem: 'C', x: 0, y: 0, z: 0 },
         { elem: 'C', x: 3, y: 0, z: 0, link: true }
@@ -1094,15 +556,65 @@
       moleculeGroup.position.sub(center);
 
       scene.add(moleculeGroup);
+
+      // Dynamically update the element legend for ONLY the elements present in this molecule
+      updateAtomLegend(atoms);
+    }
+
+    function updateAtomLegend(atoms) {
+      const legendContainer = document.getElementById('atomColorLegend');
+      if (!legendContainer) return;
+
+      const elementMeta = {
+        'C': { name: 'Carbon', colorClass: 'bg-cyan-400' },
+        'O': { name: 'Oxygen', colorClass: 'bg-red-500' },
+        'N': { name: 'Nitrogen', colorClass: 'bg-blue-500' },
+        'F': { name: 'Fluorine', colorClass: 'bg-emerald-400' },
+        'Cl': { name: 'Chlorine', colorClass: 'bg-green-400' },
+        'S': { name: 'Sulfur', colorClass: 'bg-yellow-400' },
+        'H': { name: 'Hydrogen', colorClass: 'bg-white' }
+      };
+
+      const presentElements = new Set();
+      let hasLink = false;
+
+      atoms.forEach(a => {
+        if (a.link) {
+          hasLink = true;
+        } else if (a.elem) {
+          presentElements.add(a.elem);
+        }
+      });
+
+      legendContainer.innerHTML = '';
+
+      // Add each present element
+      presentElements.forEach(elem => {
+        const meta = elementMeta[elem] || { name: elem, colorClass: 'bg-cyan-400' };
+        const badge = document.createElement('span');
+        badge.className = "flex items-center space-x-1";
+        badge.innerHTML = `<span class="w-2.5 h-2.5 rounded-full ${meta.colorClass}"></span><span>${meta.name}</span>`;
+        legendContainer.appendChild(badge);
+      });
+
+      // Add endlink marker if present
+      if (hasLink) {
+        const linkBadge = document.createElement('span');
+        linkBadge.className = "flex items-center space-x-1";
+        linkBadge.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span><span>Endlink (*)</span>`;
+        legendContainer.appendChild(linkBadge);
+      }
     }
 
     function toggleAutoRotate(val) {
       isAutoRotating = val;
     }
 
-    function toggleThermalMotion(val) {
-      isThermalMotionActive = val;
+    function toggleVisualMotion(val) {
+      isVisualMotionActive = val;
     }
+
+    
 
     function reset3DCamera() {
       if (controls && camera) {
@@ -1143,7 +655,7 @@
       ctx.fillStyle = '#f8fafc';
       ctx.font = 'bold 16px Plus Jakarta Sans';
       ctx.textAlign = 'center';
-      ctx.fillText(`${data.name} — Topological Monomer Unit`, canvas.width / 2, 60);
+      ctx.fillText(`${data.name} — illustrative repeat-unit sketch`, canvas.width / 2, 60);
 
       ctx.font = '14px JetBrains Mono';
       ctx.fillStyle = '#22d3ee';
@@ -1182,364 +694,185 @@
 
       ctx.fillStyle = '#38bdf8';
       ctx.font = 'bold 14px JetBrains Mono';
-      ctx.fillText(`[ ${data.name.split(' ')[0]} Monomer Core ]`, canvas.width / 2, 205);
+      ctx.fillText(`[ Illustrative repeat unit ]`, canvas.width / 2, 205);
     }
 
     /* ==========================================================================
-       INTERACTIVE LOGIC & DATA UPDATES
+       INTERACTIVE LOGIC, AUTOCOMPLETE & CSV LOOKUP ENGINE
        ========================================================================== */
-    function loadPresetPolymer(key) {
-      if (key === 'custom') return;
-      currentPolyData = POLYMER_DATABASE[key];
-      document.getElementById('psmilesInput').value = currentPolyData.psmiles;
-      document.getElementById('moleculeTitle').textContent = `${currentPolyData.name} — 3D Macromolecular Visualizer`;
-      
-      updatePolymerView(currentPolyData);
-      render3DMolecule(currentPolyData);
-      updateRadar(currentPolyData);
-      showToast(`Loaded 3D model for ${currentPolyData.name}`);
+    let searchDebounceTimer = null;
+
+    function handleSearchFocus() {
+      const q = document.getElementById('polymerSearchInput').value.trim();
+      if (q.length > 0) {
+        fetchSearchSuggestions(q);
+      }
     }
 
-    function handleCustomInput() {
-      document.getElementById('presetSelect').value = 'custom';
-      const rawSmiles = document.getElementById('psmilesInput').value.trim();
-      const starCount = (rawSmiles.match(/\*/g) || []).length + (rawSmiles.match(/\[\*\]/g) || []).length;
-      const validityEl = document.getElementById('smilesValidity');
-      const starTag = document.getElementById('starCountTag');
-
-      if (rawSmiles.length < 3) {
-        validityEl.className = "mt-1 flex items-center justify-between text-[11px] text-amber-400 font-mono";
-        validityEl.firstElementChild.textContent = "⚠ Enter valid PSMILES monomer string";
-        starTag.textContent = `${starCount} Connection Points`;
+    function handleSearchInput(query) {
+      const clearBtn = document.getElementById('clearSearchBtn');
+      if (query.trim().length > 0) {
+        clearBtn.classList.remove('hidden');
+      } else {
+        clearBtn.classList.add('hidden');
+        closeSuggestions();
         return;
       }
 
-      validityEl.className = "mt-1 flex items-center justify-between text-[11px] text-emerald-400 font-mono";
-      validityEl.firstElementChild.textContent = "✓ Custom PSMILES Parsed";
+      clearTimeout(searchDebounceTimer);
+      searchDebounceTimer = setTimeout(() => {
+        fetchSearchSuggestions(query.trim());
+      }, 150);
+    }
+
+    function clearSearchInput() {
+      const input = document.getElementById('polymerSearchInput');
+      input.value = '';
+      document.getElementById('clearSearchBtn').classList.add('hidden');
+      closeSuggestions();
+      input.focus();
+    }
+
+    async function fetchSearchSuggestions(q) {
+      if (!q) {
+        closeSuggestions();
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/polymers/search?q=${encodeURIComponent(q)}`);
+        if (!res.ok) return;
+        const list = await res.json();
+        renderSuggestions(list, q);
+      } catch (err) {
+        console.error("Search error:", err);
+      }
+    }
+
+    function renderSuggestions(list, query) {
+      const dropdown = document.getElementById('searchResultsDropdown');
+      dropdown.innerHTML = '';
+
+      if (!list || list.length === 0) {
+        dropdown.innerHTML = `
+          <div class="p-3 text-xs text-slate-400 flex items-center justify-between">
+            <span>No CSV record found for "<strong>${escapeHtml(query)}</strong>"</span>
+            <span class="text-[10px] font-mono text-amber-400">Model API is not connected</span>
+          </div>`;
+        dropdown.classList.remove('hidden');
+        return;
+      }
+
+      list.forEach(p => {
+        const item = document.createElement('div');
+        item.className = "p-2.5 hover:bg-slate-800/90 cursor-pointer transition flex flex-col space-y-0.5 text-xs";
+        
+        const tgStr = p.tg_C ? `${p.tg_C} °C` : 'N/A';
+      const tmStr = p.tm_C ? `${p.tm_C} °C` : 'Not recorded';
+        const tdStr = p.td_C ? `${p.td_C} °C` : 'N/A';
+        const psmilesDisplay = p.psmiles || p.smiles || '';
+
+        item.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-slate-100 hover:text-cyan-300 truncate max-w-[280px]">${escapeHtml(p.polymerName || p.polymerId)}</span>
+            <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-800">${escapeHtml(p.polymerId)}</span>
+          </div>
+          <div class="text-[11px] font-mono text-cyan-400/90 truncate max-w-[360px]">${escapeHtml(psmilesDisplay)}</div>
+          <div class="flex items-center space-x-3 text-[10px] font-mono text-slate-400 pt-0.5">
+            <span>Tg: <strong class="text-slate-200">${tgStr}</strong></span>
+            <span>Tm: <strong class="text-slate-200">${tmStr}</strong></span>
+            <span>Td: <strong class="text-slate-200">${tdStr}</strong></span>
+          </div>
+        `;
+        item.onclick = () => selectPolymerRecord(p);
+        dropdown.appendChild(item);
+      });
+
+      dropdown.classList.remove('hidden');
+    }
+
+    function closeSuggestions() {
+      document.getElementById('searchResultsDropdown').classList.add('hidden');
+    }
+
+    // Close suggestions on outside click
+    document.addEventListener('click', (e) => {
+      const container = document.getElementById('searchResultsDropdown');
+      const input = document.getElementById('polymerSearchInput');
+      if (container && !container.contains(e.target) && e.target !== input) {
+        closeSuggestions();
+      }
+    });
+
+    function selectPolymerRecord(rec) {
+      closeSuggestions();
+      document.getElementById('polymerSearchInput').value = rec.polymerName || rec.polymerId;
+      document.getElementById('clearSearchBtn').classList.remove('hidden');
+
+      const psmiles = rec.psmiles || rec.smiles || '';
+      document.getElementById('psmilesInput').value = psmiles;
+      document.getElementById('moleculeTitle').textContent = `${rec.polymerName || rec.polymerId} — illustrative repeat-unit schematic`;
+
+      // Convert CSV record to polymer object
+      const parsedTg = rec.tg_C ? parseFloat(rec.tg_C) : null;
+      const parsedTm = rec.tm_C ? parseFloat(rec.tm_C) : null;
+      const parsedTd = rec.td_C ? parseFloat(rec.td_C) : null;
+
+      // Generate 3D structure representation based on SMILES features
+      const struct = generate3DFromSmiles(psmiles);
+
+      currentPolyData = {
+        name: rec.polymerName || rec.polymerId,
+        id: rec.polymerId,
+        psmiles: psmiles,
+        class: "CSV record",
+        isCsvSource: true,
+        tg: parsedTg !== null && !isNaN(parsedTg) ? parsedTg : null,
+        tg_raw: rec.tg_C,
+        tg_source: rec.tg_Source || "polymer_master.csv",
+        tm: parsedTm !== null && !isNaN(parsedTm) ? parsedTm : null,
+        tm_raw: rec.tm_C,
+        tm_source: rec.tm_Source || (parsedTm !== null ? "polymer_master.csv" : "Not recorded"),
+        
+        td: parsedTd !== null && !isNaN(parsedTd) ? parsedTd : null,
+        td_raw: rec.td_C,
+        td_source: rec.td_Source || "polymer_master.csv",
+        
+        
+        atoms3D: struct.atoms3D,
+        bonds3D: struct.bonds3D
+      };
+
+      updatePolymerView(currentPolyData);
+      render3DMolecule(currentPolyData);
+      
+      showToast(`Loaded ${rec.polymerName || rec.polymerId} from CSV!`);
+    }
+
+    function handlePsmilesManualEdit(val) {
+      document.getElementById('polymerSearchInput').value = '';
+      document.getElementById('clearSearchBtn').classList.add('hidden');
+      closeSuggestions();
+
+      const starCount = (val.match(/\*/g) || []).length + (val.match(/\[\*\]/g) || []).length;
+      const starTag = document.getElementById('starCountTag');
       starTag.textContent = `${starCount} Terminal Points (*)`;
     }
 
-    function runPredictionTrigger() {
-      const btn = document.getElementById('predictBtn');
-      const btnText = document.getElementById('predictBtnText');
-      
-      btnText.textContent = "Computing 3D coordinates & properties...";
-      btn.classList.add('opacity-80', 'animate-pulse');
+    async function runPredictionTrigger(){const q=document.getElementById('polymerSearchInput').value.trim(),input=document.getElementById('psmilesInput').value.trim(),query=q||input;if(!query){showToast('Enter a polymer name, ID, or repeat-unit string.');return;}const btn=document.getElementById('predictBtn'),label=document.getElementById('predictBtnText');btn.disabled=true;label.textContent='Checking CSV…';try{const r=await fetch(`/api/polymers/lookup?query=${encodeURIComponent(query)}`);if(!r.ok)throw Error();const result=await r.json();if(result.found&&result.polymer){selectPolymerRecord(result.polymer);showToast('Loaded matching CSV record.');}else showModelPending(query,input||query);}catch(e){showModelPending(query,input||query);showToast('CSV lookup failed. No prediction was generated.');}finally{btn.disabled=false;label.textContent='Check CSV / predict when API is available';}}
+function showModelPending(name,repeatUnit){const g=generate3DFromSmiles(repeatUnit);currentPolyData={name,psmiles:repeatUnit,class:'Not found in CSV — model API is not connected',isCsvSource:false,modelPending:true,tg:null,tm:null,td:null,atoms3D:g.atoms3D,bonds3D:g.bonds3D};document.getElementById('psmilesInput').value=repeatUnit;document.getElementById('moleculeTitle').textContent=`${name} — illustrative repeat-unit schematic`;updatePolymerView(currentPolyData);render3DMolecule(currentPolyData);}
 
-      setTimeout(() => {
-        btn.classList.remove('opacity-80', 'animate-pulse');
-        btnText.textContent = "Run Neural Inference & Update 3D Model";
+function generate3DFromSmiles(smiles=''){const s=String(smiles||'');const atoms3D=[{elem:'C',x:-4,y:0,z:0,link:true},{elem:'C',x:-2,y:.7,z:.1},{elem:'C',x:0,y:-.2,z:0},{elem:'C',x:2,y:.7,z:-.1},{elem:'C',x:4,y:0,z:0,link:true}],bonds3D=[[0,1],[1,2],[2,3],[3,4]];if(/[cC]1|[cC]2|c{3,}/.test(s)){const ring=[[0,-1.9,.4],[1.1,-2.7,.6],[1.1,-4,.8],[0,-4.7,.8],[-1.1,-4,.6],[-1.1,-2.7,.4]];const start=atoms3D.length;ring.forEach(([x,y,z])=>atoms3D.push({elem:'C',x,y,z}));bonds3D.push([2,start],[start,start+1],[start+1,start+2],[start+2,start+3],[start+3,start+4],[start+4,start+5],[start+5,start]);}const branches=[['O',/O/.test(s),-2,2,.3,1],['N',/N|n/.test(s),2,2,-.3,3],['F',/F/.test(s),0,1.4,-.8,2],['Cl',/Cl/.test(s),-3,2,-.6,0],['S',/S/.test(s),3,2,.6,4]];branches.forEach(([elem,found,x,y,z,to])=>{if(found){const i=atoms3D.push({elem,x,y,z})-1;bonds3D.push([to,i]);}});return{atoms3D,bonds3D};}
 
-        if (document.getElementById('presetSelect').value === 'custom') {
-          const rawSmiles = document.getElementById('psmilesInput').value.trim();
-          currentPolyData = generateCustomPrediction(rawSmiles);
-        }
+function updatePolymerView(data){document.getElementById('moleculeTitle').textContent=data.name;const src=document.getElementById('sourceIndicatorTag'),badge=document.getElementById('lookupStatusBadge'),txt=document.getElementById('lookupStatusText');if(data.isCsvSource){src.textContent=`Source: polymer_master.csv (${data.id||'record'})`;src.className='text-emerald-400 font-mono';txt.textContent='CSV record';badge.className='text-[11px] font-mono px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-800 flex items-center space-x-1';}else{src.textContent='Illustrative repeat-unit schematic';src.className='text-slate-400 font-mono';txt.textContent=data.modelPending?'Model API not connected':'Ready';badge.className='text-[11px] font-mono px-2 py-0.5 rounded-full bg-slate-900 text-slate-300 border border-slate-700 flex items-center space-x-1';}const show=(id,kid,sid,v,ps)=>{const a=document.getElementById(id),k=document.getElementById(kid),b=document.getElementById(sid),n=v==null||v===''?NaN:Number(v);if(Number.isFinite(n)){a.textContent=`${n.toFixed(1)} °C`;k.textContent=`${(n+273.15).toFixed(2)} K`;b.textContent=ps||(data.isCsvSource?'CSV record':'Model estimate');}else{a.textContent='Not available';k.textContent=data.modelPending?'Model API not connected':'No value recorded in CSV';b.textContent=data.modelPending?'Pending model API':(data.isCsvSource?'Not recorded':'No prediction');}};show('tgValueDisplay','tgKelvinDisplay','tgSourceDisplay',data.tg,data.tg_source);show('tmValueDisplay','tmKelvinDisplay','tmSourceDisplay',data.tm,data.tm_source);show('tdValueDisplay','tdKelvinDisplay','tdSourceDisplay',data.td,data.td_source);}
 
-        updatePolymerView(currentPolyData);
-        render3DMolecule(currentPolyData);
-        updateRadar(currentPolyData);
-        showToast("Updated 3D Conformation & Thermal Predictions!");
-      }, 500);
-    }
-
-    function generateCustomPrediction(smiles) {
-      const aromaticCount = (smiles.match(/c1|c2|C1|C2|ccccc/g) || []).length;
-      const fluorineCount = (smiles.match(/F/g) || []).length;
-      const nitrogenCount = (smiles.match(/N|n/g) || []).length;
-      const esterCount = (smiles.match(/C\(=O\)O|OC\(=O\)/g) || []).length;
-      const alkyleneCount = (smiles.match(/CC|CCC|CCCC/g) || []).length;
-
-      let estTg = 50 + (aromaticCount * 32) + (nitrogenCount * 25) + (fluorineCount * 18) + (esterCount * 12) - (alkyleneCount * 10);
-      if (estTg < -50) estTg = -20;
-      if (estTg > 350) estTg = 350;
-
-      let estTm = (aromaticCount > 0 || nitrogenCount > 0 || fluorineCount > 2) ? Math.round(estTg * 1.45 + 40) : null;
-      let estTd = Math.round(300 + (aromaticCount * 45) + (fluorineCount * 50) - (esterCount * 15));
-
-      // Synthesize custom 3D atoms
-      const customAtoms = [
-        { elem: 'C', x: -4.0, y: 0, z: 0, link: true },
-        { elem: 'C', x: -2.0, y: 0.6, z: 0.2 },
-        { elem: 'C', x: 0.0, y: -0.3, z: 0.0 },
-        { elem: 'C', x: 2.0, y: 0.6, z: -0.2 },
-        { elem: 'C', x: 4.0, y: 0, z: 0, link: true }
-      ];
-      const customBonds = [[0, 1], [1, 2], [2, 3], [3, 4]];
-
-      if (aromaticCount > 0) {
-        customAtoms.push(
-          { elem: 'C', x: 0.0, y: -2.0, z: 0.4 },
-          { elem: 'C', x: 1.1, y: -2.8, z: 0.6 },
-          { elem: 'C', x: 1.1, y: -4.1, z: 0.8 },
-          { elem: 'C', x: 0.0, y: -4.8, z: 0.8 },
-          { elem: 'C', x: -1.1, y: -4.1, z: 0.6 },
-          { elem: 'C', x: -1.1, y: -2.8, z: 0.4 }
-        );
-        customBonds.push([2, 5], [5, 6], [6, 7], [7, 8], [8, 9], [9, 10], [10, 5]);
-      } else if (fluorineCount > 0) {
-        customAtoms.push(
-          { elem: 'F', x: -2.0, y: 1.8, z: 0.4 },
-          { elem: 'F', x: 0.0, y: 1.4, z: -0.6 }
-        );
-        customBonds.push([1, 5], [2, 6]);
-      }
-
-      return {
-        name: "Custom Synthetic Polymer",
-        psmiles: smiles,
-        class: "Custom User Polymer",
-        tg: Math.round(estTg * 10) / 10,
-        tg_uncertainty: 3.5,
-        tg_conf: "92.4%",
-        tm: estTm,
-        tm_crystallinity: estTm ? "35% (Predicted Semi-Crystalline)" : "0% (Amorphous)",
-        td: estTd,
-        td_uncertainty: 6.0,
-        radar: [
-          Math.min(95, 40 + aromaticCount * 18),
-          Math.min(95, nitrogenCount * 30),
-          Math.min(95, aromaticCount * 25),
-          Math.min(95, 50 + fluorineCount * 10),
-          Math.min(95, esterCount * 25 + nitrogenCount * 20),
-          Math.min(95, 30 + aromaticCount * 15)
-        ],
-        shap: {
-          tg: [
-            { group: "Aromatic / Chain Rigidity", impact: `+${aromaticCount * 32} °C`, pos: true, desc: "Restricts torsional freedom" },
-            { group: "Heteroatom / Dipoles", impact: `+${nitrogenCount * 25} °C`, pos: true, desc: "Intermolecular dipole forces" },
-            { group: "Aliphatic Backbone Spacers", impact: `-${alkyleneCount * 10} °C`, pos: false, desc: "Increases conformational mobility" }
-          ],
-          tm: [
-            { group: "Chain Regularity Packing", impact: estTm ? `+${Math.round(estTm - estTg)} °C` : "Amorphous", pos: true, desc: "Symmetry enables crystal lattice" }
-          ],
-          td: [
-            { group: "Covalent Bond Dissociation", impact: `+${Math.round(estTd - 250)} °C`, pos: true, desc: "Thermal degradation threshold" }
-          ]
-        },
-        atoms3D: customAtoms,
-        bonds3D: customBonds
-      };
-    }
-
-    function updatePolymerView(data) {
-      document.getElementById('polymerClassName').textContent = data.class;
-      document.getElementById('tgValueDisplay').textContent = `${data.tg.toFixed(1)} °C`;
-      document.getElementById('tgKelvinDisplay').textContent = `${(data.tg + 273.15).toFixed(2)} K`;
-      document.getElementById('tgConf').textContent = data.tg_conf;
-      document.getElementById('tgUncert').textContent = `± ${data.tg_uncertainty} °C`;
-      document.getElementById('tgTag').textContent = data.tg > 100 ? "High-Tg Glassy" : (data.tg > 20 ? "Rigid Glassy" : "Elastomeric");
-
-      if (data.tm !== null) {
-        document.getElementById('tmValueDisplay').textContent = `${data.tm.toFixed(1)} °C`;
-        document.getElementById('tmKelvinDisplay').textContent = `${(data.tm + 273.15).toFixed(2)} K`;
-        document.getElementById('tmCrystallinity').textContent = data.tm_crystallinity;
-        document.getElementById('tmUncert').textContent = `± 3.2 °C`;
-        document.getElementById('tmTag').textContent = "Semi-Crystalline";
-        document.getElementById('tmTag').className = "px-2 py-0.5 rounded text-[10px] font-bold bg-teal-950 text-teal-300 border border-teal-800";
-      } else {
-        document.getElementById('tmValueDisplay').textContent = "Amorphous";
-        document.getElementById('tmKelvinDisplay').textContent = "N/A (No First-Order Phase Transition)";
-        document.getElementById('tmCrystallinity').textContent = "0% (Amorphous Glass)";
-        document.getElementById('tmUncert').textContent = "N/A";
-        document.getElementById('tmTag').textContent = "Non-Crystalline";
-        document.getElementById('tmTag').className = "px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300";
-      }
-
-      document.getElementById('tdValueDisplay').textContent = `${data.td.toFixed(1)} °C`;
-      document.getElementById('tdKelvinDisplay').textContent = `${(data.td + 273.15).toFixed(2)} K (5% Mass Loss)`;
-      document.getElementById('tdUncert').textContent = `± ${data.td_uncertainty} °C`;
-      document.getElementById('tdRating').textContent = data.td > 450 ? "Ultra-High Stability" : (data.td > 350 ? "High Stability" : "Standard Stability");
-
-      updateThermalMarkers(data);
-      updateThermalProbe(currentProbeTemp);
-      renderShapBars(data, currentShapTarget);
-    }
-
-    function updateDP(val) {
-      currentDP = val;
-      document.getElementById('nValDisplay').textContent = val;
-    }
-
-    function updateThermalMarkers(data) {
-      const minT = -50;
-      const maxT = 550;
-      const getPct = (t) => Math.max(2, Math.min(98, ((t - minT) / (maxT - minT)) * 100));
-
-      const tgPct = getPct(data.tg);
-      const markerTg = document.getElementById('markerTg');
-      markerTg.style.left = `${tgPct}%`;
-      document.getElementById('markerTgText').textContent = `${data.tg.toFixed(0)}°C`;
-
-      const markerTm = document.getElementById('markerTm');
-      if (data.tm !== null) {
-        const tmPct = getPct(data.tm);
-        markerTm.style.left = `${tmPct}%`;
-        markerTm.style.display = "flex";
-        document.getElementById('markerTmText').textContent = `${data.tm.toFixed(0)}°C`;
-      } else {
-        markerTm.style.display = "none";
-      }
-
-      const tdPct = getPct(data.td);
-      const markerTd = document.getElementById('markerTd');
-      markerTd.style.left = `${tdPct}%`;
-      document.getElementById('markerTdText').textContent = `${data.td.toFixed(0)}°C`;
-
-      const tgZone = Math.max(5, tgPct);
-      const tmZone = data.tm !== null ? Math.max(5, getPct(data.tm) - tgPct) : Math.max(5, tdPct - tgPct);
-      const tdZone = Math.max(5, tdPct - (data.tm !== null ? getPct(data.tm) : tgPct));
-      const degZone = Math.max(5, 100 - tdPct);
-
-      document.getElementById('phaseRegionGlass').style.width = `${tgZone}%`;
-      document.getElementById('phaseRegionRubber').style.width = `${tmZone}%`;
-      document.getElementById('phaseRegionMelt').style.width = `${tdZone}%`;
-      document.getElementById('phaseRegionDegradation').style.width = `${degZone}%`;
-    }
-
-    function updateThermalProbe(tempVal) {
-      currentProbeTemp = parseFloat(tempVal);
-      document.getElementById('probeTempText').textContent = `${currentProbeTemp} °C`;
-      document.getElementById('probeKelvinText').textContent = `(${(currentProbeTemp + 273.15).toFixed(2)} K)`;
-
-      // Update 3D badge stats based on temperature
-      const normT = Math.max(0, (currentProbeTemp + 50) / 600);
-      const ampVal = (0.008 + normT * 0.045).toFixed(3);
-      document.getElementById('vibeAmpDisplay').textContent = `${ampVal} Å`;
-
-      const vibeRate = document.getElementById('vibeRateDisplay');
-      if (currentProbeTemp < 50) vibeRate.textContent = "Low (Frozen)";
-      else if (currentProbeTemp < 200) vibeRate.textContent = "Moderate (Segmental)";
-      else if (currentProbeTemp < 380) vibeRate.textContent = "High (Melt Reptation)";
-      else vibeRate.textContent = "Extreme (Pyrolysis Scission)";
-
-      const tg = currentPolyData.tg;
-      const tm = currentPolyData.tm;
-      const td = currentPolyData.td;
-
-      const stateTitle = document.getElementById('probeStateTitle');
-      const modulus = document.getElementById('probeModulus');
-      const mobility = document.getElementById('probeMobility');
-      const appWindow = document.getElementById('probeAppWindow');
-
-      if (currentProbeTemp < tg) {
-        stateTitle.textContent = "Rigid Glassy Solid Phase";
-        stateTitle.className = "font-bold text-blue-400 text-sm";
-        modulus.textContent = "~ 2.8 - 3.5 GPa";
-        mobility.textContent = "Chains frozen in non-equilibrium state; localized bond vibrations only";
-        appWindow.textContent = "Structural solid load-bearing application regime";
-      } else if (tm !== null && currentProbeTemp >= tg && currentProbeTemp < tm) {
-        stateTitle.textContent = "Leathery / Tough Semi-Crystalline Phase";
-        stateTitle.className = "font-bold text-cyan-300 text-sm";
-        modulus.textContent = "~ 50 - 500 MPa";
-        mobility.textContent = "Amorphous tie-chains mobile while crystalline lamellae maintain integrity";
-        appWindow.textContent = "High-impact toughness and durability window";
-      } else if (tm === null && currentProbeTemp >= tg && currentProbeTemp < td) {
-        stateTitle.textContent = "Rubbery / Viscoelastic Flow State";
-        stateTitle.className = "font-bold text-teal-300 text-sm";
-        modulus.textContent = "~ 0.8 - 10 MPa";
-        mobility.textContent = "Long-range micro-Brownian segmental motion; disentanglement underway";
-        appWindow.textContent = "Thermoforming, vacuum-forming & sheet processing window";
-      } else if (tm !== null && currentProbeTemp >= tm && currentProbeTemp < td) {
-        stateTitle.textContent = "Isotropic Liquid Polymer Melt";
-        stateTitle.className = "font-bold text-amber-400 text-sm";
-        modulus.textContent = "< 0.01 MPa (Fluid Flow)";
-        mobility.textContent = "Crystalline order dissolved; free reptation and macro-molecular melt flow";
-        appWindow.textContent = "Injection molding, extrusion & additive filament 3D printing";
-      } else {
-        stateTitle.textContent = "Thermal Degradation & Pyrolysis";
-        stateTitle.className = "font-bold text-red-400 text-sm";
-        modulus.textContent = "N/A (Chain Scission)";
-        mobility.textContent = "Thermal activation exceeds covalent bond dissociation energies";
-        appWindow.textContent = "UNSAFE: Polymer decomposition and gas evolution";
-      }
-    }
-
-    function switchShapTarget(target) {
-      currentShapTarget = target;
-      ['tg', 'tm', 'td'].forEach(t => {
-        const btn = document.getElementById(`shapBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
-        if (t === target) {
-          btn.className = "px-3 py-1.5 rounded-lg font-semibold bg-cyan-950 text-cyan-300 border border-cyan-800";
-        } else {
-          btn.className = "px-3 py-1.5 rounded-lg text-slate-400 hover:text-white";
-        }
-      });
-      renderShapBars(currentPolyData, target);
-    }
-
-    function renderShapBars(data, target) {
-      const container = document.getElementById('shapBarsContainer');
-      container.innerHTML = '';
-      const shapList = (data.shap && data.shap[target]) ? data.shap[target] : [];
-
-      if (shapList.length === 0) {
-        container.innerHTML = `<p class="text-xs text-slate-400 italic">No first-order crystalline transition attribution for this amorphous polymer.</p>`;
-        return;
-      }
-
-      shapList.forEach(item => {
-        const isPos = item.pos !== false;
-        const barColor = isPos ? 'bg-cyan-500' : 'bg-amber-500';
-        const textColor = isPos ? 'text-cyan-300' : 'text-amber-300';
-
-        const row = document.createElement('div');
-        row.className = "p-3 bg-slate-900/80 rounded-xl border border-slate-800 space-y-1 text-xs";
-        row.innerHTML = `
-          <div class="flex justify-between items-center font-medium">
-            <span class="text-white font-semibold flex items-center space-x-1.5">
-              <span class="w-2 h-2 rounded-full ${barColor}"></span>
-              <span>${item.group}</span>
-            </span>
-            <span class="font-mono font-bold ${textColor}">${item.impact}</span>
-          </div>
-          <p class="text-[11px] text-slate-400">${item.desc}</p>
-          <div class="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden mt-1">
-            <div class="h-full ${barColor} rounded-full" style="width: ${isPos ? '75%' : '45%'}"></div>
-          </div>
-        `;
-        container.appendChild(row);
-      });
-    }
-
-    function initMiniRadar() {
-      const ctx = document.getElementById('miniRadarChart').getContext('2d');
-      miniRadarChartInstance = new Chart(ctx, {
-        type: 'radar',
-        data: {
-          labels: ['Rigidity', 'H-Bond', 'Aromatic', 'VdW Vol', 'Polarity', 'Steric'],
-          datasets: [{
-            label: 'Polymer Fingerprint',
-            data: currentPolyData.radar,
-            backgroundColor: 'rgba(6, 182, 212, 0.25)',
-            borderColor: '#06b6d4',
-            borderWidth: 2,
-            pointBackgroundColor: '#22d3ee',
-            pointRadius: 2.5
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: {
-            r: {
-              angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
-              grid: { color: 'rgba(255, 255, 255, 0.08)' },
-              pointLabels: { color: '#94a3b8', font: { size: 9, family: 'JetBrains Mono' } },
-              ticks: { display: false },
-              suggestedMin: 0,
-              suggestedMax: 100
-            }
-          }
-        }
-      });
-    }
-
-    function updateRadar(data) {
-      if (miniRadarChartInstance) {
-        miniRadarChartInstance.data.datasets[0].data = data.radar;
-        miniRadarChartInstance.update();
-      }
+function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
     }
 
     function copyPSMILES() {
@@ -1553,20 +886,106 @@
       const summary = {
         name: currentPolyData.name,
         psmiles: currentPolyData.psmiles,
-        classification: currentPolyData.class,
+        source: currentPolyData.isCsvSource ? "CSV" : (currentPolyData.modelPending ? "Model API pending" : "Not available"),
         tg_celsius: currentPolyData.tg,
         tm_celsius: currentPolyData.tm,
         td_celsius: currentPolyData.td,
-        degree_of_polymerization: currentDP
+        tg_source: currentPolyData.tg_source,
+        tm_source: currentPolyData.tm_source,
+        td_source: currentPolyData.td_source
       };
       const blob = new Blob([JSON.stringify(summary, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${currentPolyData.name.replace(/[^a-zA-Z0-9]/g, '_')}_prediction.json`;
+      a.download = `${currentPolyData.name.replace(/[^a-zA-Z0-9]/g, '_')}_polymer_properties.json`;
       a.click();
       URL.revokeObjectURL(url);
-      showToast("Downloaded Prediction JSON");
+      showToast("Downloaded polymer properties JSON");
+    }
+
+    /* ==========================================================================
+       INTERNATIONALIZATION (i18n) DICTIONARY: ENGLISH & VIETNAMESE (VIE)
+       ========================================================================== */
+    const I18N = {
+      en: {
+        headerSubtitle: "Polymer database lookup and thermal properties",
+        polyConfig: "Polymer Query & Input",
+        searchLabel: "Search Database",
+        csvReady: "CSV Ready",
+        searchPlaceholder: "Search polymer name, PSMILES, SLIMES, or POLY_ID...",
+        psmilesLabel: "Monomer PSMILES / Structure",
+        copyBtn: "Copy",
+        predictBtn: "Check CSV / predict when API is available",
+        visualizerSubtitle: "Illustrative repeat-unit schematic — not a generated molecular structure",
+        view3D: "3D schematic",
+        view2D: "2D schematic",
+        controlsHint: "Rotate • Zoom • Pan",
+        autoSpin: "Auto-Spin",
+        tgTitle: "Glass Transition (Tg)",
+        tmTitle: "Melting Point (Tm)",
+        tdTitle: "Decomposition (Td)",
+        propSource: "Source:",
+        toastCopied: "Copied to clipboard!",
+        toastDownloaded: "Downloaded Prediction JSON"
+      },
+      vi: {
+        headerSubtitle: "Tra cứu dữ liệu Polyme & Dự đoán nhiệt động ML",
+        polyConfig: "Tra cứu & Dữ liệu Polyme",
+        searchLabel: "Tìm kiếm dữ liệu",
+        csvReady: "Đã nạp CSV",
+        searchPlaceholder: "Nhập tên polyme, PSMILES, SLIMES hoặc mã ID...",
+        psmilesLabel: "Chuỗi cấu trúc PSMILES",
+        copyBtn: "Sao chép",
+        chainUnits: "Độ dài mắt xích (n)",
+        predictBtn: "Kiểm tra CSV / dự đoán khi API sẵn sàng",
+        visualizerSubtitle: "Sơ đồ minh họa; không phải cấu trúc phân tử 3D được tính toán",
+        view3D: "Sơ đồ 3D",
+        view2D: "Sơ đồ 2D",
+        controlsHint: "Xoay • Phóng to • Di chuyển",
+        autoSpin: "Tự xoay",
+        tgTitle: "Nhiệt độ chuyển thủy tinh (Tg)",
+        tmTitle: "Điểm nóng chảy (Tm)",
+        tdTitle: "Nhiệt độ phân hủy (Td)",
+        propSource: "Nguồn dữ liệu:",
+        toastCopied: "Đã sao chép vào bộ nhớ tạm!",
+        toastDownloaded: "Đã tải file JSON"
+      }
+    };
+
+    let currentLang = 'en';
+
+    function changeLanguage(lang) {
+      currentLang = lang;
+      const dict = I18N[lang] || I18N.en;
+
+      // Update textContent for elements with data-i18n
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (dict[key]) {
+          el.textContent = dict[key];
+        }
+      });
+
+      // Update placeholders
+      document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+        const key = el.getAttribute('data-i18n-ph');
+        if (dict[key]) {
+          el.placeholder = dict[key];
+        }
+      });
+
+      // Update the lookup badge text appropriately
+      const lookupBadgeText = document.getElementById('lookupStatusText');
+      if (lookupBadgeText) {
+        if (currentPolyData.isCsvSource) {
+          lookupBadgeText.textContent = lang === 'vi' ? 'Dữ liệu CSV' : 'CSV Match';
+        } else {
+          lookupBadgeText.textContent = lang === 'vi' ? 'Dự đoán mô hình' : 'Model Estimate';
+        }
+      }
+
+      showToast(lang === 'vi' ? "Đã chuyển sang Tiếng Việt" : "Switched to English");
     }
 
     function showToast(msg) {
