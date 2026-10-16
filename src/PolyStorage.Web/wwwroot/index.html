@@ -120,7 +120,7 @@
           <!-- Language Selector Pill -->
           <div class="relative flex items-center bg-slate-900 border border-slate-800 rounded-xl px-2.5 py-1 text-xs text-slate-300 shadow-inner">
             <span class="w-2 h-2 rounded-full bg-cyan-400 mr-2 animate-pulse"></span>
-            <span class="text-slate-400 mr-1.5 font-medium">Lang:</span>
+            <span class="text-slate-400 mr-1.5 font-medium" data-i18n="languageLabel">Lang:</span>
             <select id="langSelect" onchange="changeLanguage(this.value)" class="bg-transparent text-cyan-300 font-bold font-mono focus:outline-none cursor-pointer appearance-none pr-4">
               <option value="en" class="bg-slate-900 text-slate-200">ENG</option>
               <option value="vi" class="bg-slate-900 text-slate-200">VIE</option>
@@ -130,7 +130,7 @@
             </div>
           </div>
 
-          <button onclick="exportQuickJson()" class="p-2 text-slate-300 hover:text-cyan-400 hover:bg-slate-900 rounded-xl border border-slate-800 transition" title="Export polymer properties as JSON">
+          <button onclick="exportQuickJson()" class="p-2 text-slate-300 hover:text-cyan-400 hover:bg-slate-900 rounded-xl border border-slate-800 transition" title="Export polymer properties as JSON" data-i18n-title="exportTitle">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
           </button>
         </div>
@@ -173,7 +173,7 @@
                      oninput="handleSearchInput(this.value)"
                      onfocus="handleSearchFocus()"
                      data-i18n-ph="searchPlaceholder"
-                     placeholder="e.g. polystyrene, PMMA, *CC(*)c1ccccc1, or POLY_0007..."
+                     placeholder="Search e.g. polystyrene, PMMA, *CC(*)c1ccccc1, or POLY_0007..."
                      class="w-full bg-slate-900 border border-slate-700/80 rounded-xl pl-9 pr-9 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition" />
               <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
@@ -193,15 +193,15 @@
           <div>
             <div class="flex items-center justify-between mb-1.5">
               <label for="psmilesInput" class="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center space-x-1.5">
-                <span data-i18n="psmilesLabel">Polymer Monomer String (PSMILES / SLIMES)</span>
-                <span class="text-cyan-400 font-bold" title="Asterisks indicate repeat linkages">*</span>
+                <span data-i18n="psmilesLabel">Polymer Repeat-Unit Structure (PSMILES / SMILES)</span>
+                <span class="text-cyan-400 font-bold" title="Asterisks indicate repeat linkages" data-i18n-title="repeatLinkHint">*</span>
               </label>
               <button onclick="copyPSMILES()" class="text-xs text-cyan-400 hover:text-cyan-300 flex items-center space-x-1">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h6a2 2 0 012 2v2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"/></svg>
                 <span data-i18n="copyBtn">Copy</span>
               </button>
             </div>
-            <textarea id="psmilesInput" rows="2" oninput="handlePsmilesManualEdit(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 font-mono text-sm text-cyan-300 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition resize-none shadow-inner" placeholder="e.g. *CC(*)c1ccccc1"></textarea>
+            <textarea id="psmilesInput" rows="2" oninput="handlePsmilesManualEdit(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 font-mono text-sm text-cyan-300 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition resize-none shadow-inner" placeholder="e.g. *CC(*)c1ccccc1" data-i18n-ph="structurePlaceholder"></textarea>
             <div id="smilesValidity" class="mt-1 flex items-center justify-between text-[11px] text-emerald-400 font-mono">
               <span id="sourceIndicatorTag">Source: polymer_master.csv</span>
               <span id="starCountTag">2 Terminal Points (*)</span>
@@ -213,7 +213,7 @@
         <!-- Action Button -->
         <button id="predictBtn" onclick="runPredictionTrigger()" class="w-full mt-3 py-3 px-4 bg-gradient-to-r from-cyan-500 via-teal-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold rounded-xl shadow-lg shadow-cyan-500/25 flex items-center justify-center space-x-2 transition-all transform active:scale-[0.99] glow-cyan">
           <svg id="predictBtnIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-          <span id="predictBtnText" data-i18n="predictBtn">Check CSV / predict when API is available</span>
+          <span id="predictBtnText" data-i18n="predictBtn">Confirm</span>
         </button>
       </div>
 
@@ -227,14 +227,14 @@
               <span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
               <span id="moleculeTitle">Enter a polymer to visualize</span>
             </h3>
-            <p class="text-xs text-slate-400" data-i18n="visualizerSubtitle">Illustrative schematic only; not a generated molecular structure</p>
+            <p class="text-xs text-slate-400" data-i18n="visualizerSubtitle">Atom connectivity follows the input. 3D layout is illustrative; implicit hydrogens are not shown.</p>
           </div>
 
           <!-- Controls Toggle -->
           <div class="flex items-center space-x-1.5 bg-slate-900/90 p-1 rounded-xl border border-slate-800 text-xs">
             <button onclick="setMoleculeViewMode('3d')" id="viewMode3DBtn" data-i18n="view3D" class="px-3 py-1 rounded-lg font-semibold bg-cyan-950 text-cyan-300 border border-cyan-800">3D schematic</button>
             <button onclick="setMoleculeViewMode('schematic')" id="viewMode2DBtn" data-i18n="view2D" class="px-3 py-1 rounded-lg text-slate-400 hover:text-white">2D schematic</button>
-            <button onclick="reset3DCamera()" class="p-1 text-slate-400 hover:text-cyan-300 ml-1" title="Reset Camera">
+            <button onclick="reset3DCamera()" class="p-1 text-slate-400 hover:text-cyan-300 ml-1" title="Reset Camera" data-i18n-title="resetCamera">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
             </button>
           </div>
@@ -248,6 +248,10 @@
 
           <!-- 2D Canvas Fallback / Toggle -->
           <canvas id="structureCanvas" width="550" height="340" class="w-full h-full object-contain hidden"></canvas>
+
+          <div id="structureEmptyState" class="absolute inset-0 hidden items-center justify-center bg-slate-950/95 p-6 text-center text-sm text-slate-300" role="status" data-i18n="visualizerEmpty">
+            Enter a supported SMILES or PSMILES string to show its atoms and bonds.
+          </div>
 
 
           <!-- Bottom-Right Instructions Overlay -->
@@ -267,13 +271,13 @@
             <label class="flex items-center space-x-1.5 cursor-pointer select-none">
               <input type="checkbox" id="autoRotateCheck" checked onchange="toggleAutoRotate(this.checked)" class="accent-cyan-500 rounded">
               <span data-i18n="autoSpin">Auto-Spin</span>
+            </label>
             <label class="flex items-center space-x-1.5 cursor-pointer select-none">
               <input type="checkbox" id="visualMotionCheck" checked onchange="toggleVisualMotion(this.checked)" class="accent-cyan-500 rounded">
-              <span>Gentle motion</span>
-            </label>
+              <span data-i18n="gentleMotion">Gentle motion</span>
             </label>
           </div>
-          <span class="text-[11px] font-mono text-cyan-400">Illustrative schematic</span>
+          <span class="text-[11px] font-mono text-cyan-400" data-i18n="illustrativeLabel">Illustrative schematic</span>
         </div>
 
       </div>
@@ -348,14 +352,25 @@
 
     </div>
 
+    <section role="note" class="mt-6 rounded-xl border-2 border-amber-400 bg-amber-950/70 p-4 md:p-5 shadow-lg shadow-amber-950/40" aria-labelledby="modelDisclaimerTitle">
+      <div class="flex items-start gap-3">
+        <svg class="mt-0.5 h-6 w-6 shrink-0 text-amber-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v4m0 4h.01M10.3 3.9 1.8 18.2A2 2 0 003.5 21h17a2 2 0 001.7-2.8L13.7 3.9a2 2 0 00-3.4 0z" />
+        </svg>
+        <div>
+          <h2 id="modelDisclaimerTitle" class="text-base font-extrabold uppercase tracking-wide text-amber-200" data-i18n="modelDisclaimerTitle">Important: model estimates</h2>
+          <p class="mt-1 text-sm font-medium leading-relaxed text-amber-50" data-i18n="modelDisclaimer">Model predictions are estimates and may be inaccurate. The model does not account for whether the polymer can form the phase associated with the predicted thermal transition.</p>
+        </div>
+      </div>
+    </section>
     </main>
 
   <!-- ==================== FOOTER ==================== -->
   <footer class="border-t border-slate-800/80 bg-slate-950 py-4 text-center text-xs text-slate-500">
     <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-2">
-      <p>© 2026 PolyStorage — Polymer Database Lookup</p>
+      <p data-i18n="footerTitle">© 2026 PolyStorage — Polymer Database Lookup</p>
       <div class="flex space-x-4">
-        <a href="https://github.com/Trestifer/PolyStorage" target="_blank" class="hover:text-cyan-400 transition">GitHub Repository</a>
+        <a href="https://github.com/Trestifer/PolyStorage" target="_blank" class="hover:text-cyan-400 transition" data-i18n="githubRepo">GitHub Repository</a>
         <span class="text-slate-700">•</span>
         <span class="text-slate-400 font-mono">v1.1.0-3D</span>
       </div>
@@ -365,12 +380,12 @@
   <!-- Notification Toast -->
   <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-900 border border-cyan-500/50 text-slate-100 px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-3 pointer-events-none">
     <div id="toastIcon" class="text-cyan-400 font-bold">✓</div>
-    <div id="toastText" class="text-xs font-semibold">Action completed successfully</div>
+    <div id="toastText" class="text-xs font-semibold" data-i18n="toastIdle">Action completed successfully</div>
   </div>
 
   <!-- ==================== CLIENT JAVASCRIPT & THREE.JS ENGINE ==================== -->
   <script>
-    let currentPolyData={name:'Enter a polymer to begin',psmiles:'',class:'Search the CSV or enter a repeat-unit string',isCsvSource:false,tg:null,tm:null,td:null,tg_source:'',tm_source:'',td_source:'',atoms3D:[],bonds3D:[]};
+    let currentPolyData={name:'Enter a polymer to visualize',psmiles:'',class:'Search the CSV or enter a repeat-unit string',isCsvSource:false,tg:null,tm:null,td:null,tg_source:'',tm_source:'',td_source:'',atoms3D:null,bonds3D:null};
 
 // Three.js State
     let scene, camera, renderer, controls;
@@ -382,8 +397,6 @@
     let clock = new THREE.Clock();
 
     window.onload = function() {
-      currentPolyData = { ...currentPolyData, name: 'Polystyrene (PS) — example', psmiles: '*CC(*)c1ccccc1', class: 'Illustrative repeat-unit example', ...generate3DFromSmiles('*CC(*)c1ccccc1') };
-      document.getElementById('psmilesInput').value = currentPolyData.psmiles;
       updatePolymerView(currentPolyData);
       
       initThreeJS();
@@ -480,24 +493,35 @@
 
       if (moleculeGroup) {
         scene.remove(moleculeGroup);
+        moleculeGroup = null;
       }
+
+      const atoms = data.atoms3D && data.atoms3D.length ? data.atoms3D : null;
+      if (!atoms) {
+        baseAtomPositions = [];
+        updateAtomLegend([]);
+        const emptyState = document.getElementById('structureEmptyState');
+        emptyState.textContent = tr(data.psmiles ? 'visualizerUnsupported' : 'visualizerEmpty');
+        emptyState.classList.remove('hidden');
+        emptyState.classList.add('flex');
+        return;
+      }
+      const emptyState = document.getElementById('structureEmptyState');
+      emptyState.classList.add('hidden');
+      emptyState.classList.remove('flex');
 
       moleculeGroup = new THREE.Group();
       baseAtomPositions = [];
-
-      const atoms = data.atoms3D && data.atoms3D.length ? data.atoms3D : [
-        { elem: 'C', x: -3, y: 0, z: 0, link: true },
-        { elem: 'C', x: 0, y: 0, z: 0 },
-        { elem: 'C', x: 3, y: 0, z: 0, link: true }
-      ];
-      const bonds = data.bonds3D || [[0, 1], [1, 2]];
+      const bonds = data.bonds3D || [];
 
       const colorMap = {
         'C': 0x22d3ee,  // Cyan
         'O': 0xef4444,  // Red
         'N': 0x3b82f6,  // Blue
         'F': 0x10b981,  // Emerald
-        'H': 0xffffff   // White
+        'H': 0xffffff,  // White
+        'Cl': 0x22c55e, 'Br': 0x92400e, 'I': 0x7c3aed,
+        'P': 0xf97316, 'S': 0xeab308, 'B': 0xf472b6
       };
 
       const sphereGeo = new THREE.SphereGeometry(0.48, 32, 32);
@@ -532,7 +556,7 @@
         roughness: 0.3
       });
 
-      bonds.forEach(([i, j]) => {
+      bonds.forEach(([i, j, order = 'single']) => {
         if (!atoms[i] || !atoms[j]) return;
         const p1 = new THREE.Vector3(atoms[i].x, atoms[i].y, atoms[i].z);
         const p2 = new THREE.Vector3(atoms[j].x, atoms[j].y, atoms[j].z);
@@ -541,13 +565,16 @@
         const len = dir.length();
         const mid = new THREE.Vector3().addVectors(p1, p2).multiplyScalar(0.5);
 
-        const cylinderGeo = new THREE.CylinderGeometry(0.12, 0.12, len, 16);
-        const cylinderMesh = new THREE.Mesh(cylinderGeo, bondMat);
-
-        cylinderMesh.position.copy(mid);
-        cylinderMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.clone().normalize());
-
-        moleculeGroup.add(cylinderMesh);
+        const cylinderGeo = new THREE.CylinderGeometry(0.09, 0.09, len, 12);
+        const cylinderCount = order === 'double' || order === 'aromatic' ? 2 : order === 'triple' ? 3 : 1;
+        const perpendicular = new THREE.Vector3().crossVectors(dir.clone().normalize(), new THREE.Vector3(0, 0, 1)).normalize();
+        for (let k = 0; k < cylinderCount; k++) {
+          const cylinderMesh = new THREE.Mesh(cylinderGeo, bondMat);
+          const offset = (k - (cylinderCount - 1) / 2) * 0.18;
+          cylinderMesh.position.copy(mid).addScaledVector(perpendicular, offset);
+          cylinderMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.clone().normalize());
+          moleculeGroup.add(cylinderMesh);
+        }
       });
 
       // Center the molecule bounding box
@@ -566,42 +593,46 @@
       if (!legendContainer) return;
 
       const elementMeta = {
-        'C': { name: 'Carbon', colorClass: 'bg-cyan-400' },
-        'O': { name: 'Oxygen', colorClass: 'bg-red-500' },
-        'N': { name: 'Nitrogen', colorClass: 'bg-blue-500' },
-        'F': { name: 'Fluorine', colorClass: 'bg-emerald-400' },
-        'Cl': { name: 'Chlorine', colorClass: 'bg-green-400' },
-        'S': { name: 'Sulfur', colorClass: 'bg-yellow-400' },
-        'H': { name: 'Hydrogen', colorClass: 'bg-white' }
+        'C': { name: tr('atomCarbon'), colorClass: 'bg-cyan-400' },
+        'O': { name: tr('atomOxygen'), colorClass: 'bg-red-500' },
+        'N': { name: tr('atomNitrogen'), colorClass: 'bg-blue-500' },
+        'F': { name: tr('atomFluorine'), colorClass: 'bg-emerald-400' },
+        'S': { name: tr('atomSulfur'), colorClass: 'bg-yellow-400' },
+        'H': { name: tr('atomHydrogen'), colorClass: 'bg-white' },
+        'Cl': { name: tr('atomChlorine'), colorClass: 'bg-green-500' },
+        'Br': { name: 'Br', colorClass: 'bg-amber-700' },
+        'I': { name: 'I', colorClass: 'bg-violet-500' },
+        'P': { name: 'P', colorClass: 'bg-orange-500' },
+        'B': { name: 'B', colorClass: 'bg-pink-400' }
       };
 
-      const presentElements = new Set();
-      let hasLink = false;
+      const elementCounts = new Map();
+      let linkCount = 0;
 
       atoms.forEach(a => {
         if (a.link) {
-          hasLink = true;
+          linkCount++;
         } else if (a.elem) {
-          presentElements.add(a.elem);
+          elementCounts.set(a.elem, (elementCounts.get(a.elem) || 0) + 1);
         }
       });
 
       legendContainer.innerHTML = '';
 
       // Add each present element
-      presentElements.forEach(elem => {
+      elementCounts.forEach((count, elem) => {
         const meta = elementMeta[elem] || { name: elem, colorClass: 'bg-cyan-400' };
         const badge = document.createElement('span');
         badge.className = "flex items-center space-x-1";
-        badge.innerHTML = `<span class="w-2.5 h-2.5 rounded-full ${meta.colorClass}"></span><span>${meta.name}</span>`;
+        badge.innerHTML = `<span class="w-2.5 h-2.5 rounded-full ${meta.colorClass}"></span><span>${meta.name} × ${count}</span>`;
         legendContainer.appendChild(badge);
       });
 
       // Add endlink marker if present
-      if (hasLink) {
+      if (linkCount) {
         const linkBadge = document.createElement('span');
         linkBadge.className = "flex items-center space-x-1";
-        linkBadge.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span><span>Endlink (*)</span>`;
+        linkBadge.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span><span>${tr('terminalLink')} × ${linkCount}</span>`;
         legendContainer.appendChild(linkBadge);
       }
     }
@@ -651,50 +682,48 @@
       const canvas = document.getElementById('structureCanvas');
       const ctx = canvas.getContext('2d');
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      ctx.fillStyle = '#f8fafc';
-      ctx.font = 'bold 16px Plus Jakarta Sans';
+      const graph = generate3DFromSmiles(data.psmiles);
       ctx.textAlign = 'center';
-      ctx.fillText(`${data.name} — illustrative repeat-unit sketch`, canvas.width / 2, 60);
+      if (!graph.atoms3D.length) {
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = '16px Plus Jakarta Sans';
+        ctx.fillText(tr(data.psmiles ? 'visualizerUnsupported' : 'visualizerEmpty'), canvas.width / 2, canvas.height / 2);
+        return;
+      }
 
-      ctx.font = '14px JetBrains Mono';
-      ctx.fillStyle = '#22d3ee';
-      ctx.fillText(data.psmiles, canvas.width / 2, 110);
+      const xs = graph.atoms3D.map(atom => atom.x);
+      const ys = graph.atoms3D.map(atom => atom.y);
+      const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
+      const scale = Math.min(70, 430 / Math.max(1, maxX - minX), 210 / Math.max(1, maxY - minY));
+      const centerX = (minX + maxX) / 2, centerY = (minY + maxY) / 2;
+      const point = atom => ({ x: canvas.width / 2 + (atom.x - centerX) * scale, y: canvas.height / 2 + (atom.y - centerY) * scale });
 
-      // Draw repeat dashed line
-      ctx.beginPath();
-      ctx.setLineDash([6, 6]);
-      ctx.strokeStyle = '#06b6d4';
-      ctx.lineWidth = 2.5;
-      ctx.moveTo(80, 200);
-      ctx.lineTo(canvas.width - 80, 200);
-      ctx.stroke();
-      ctx.setLineDash([]);
+      ctx.strokeStyle = '#94a3b8';
+      ctx.lineWidth = 3;
+      graph.bonds3D.forEach(([i, j, order]) => {
+        const a = point(graph.atoms3D[i]), b = point(graph.atoms3D[j]);
+        const dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy) || 1;
+        const count = order === 'double' || order === 'aromatic' ? 2 : order === 'triple' ? 3 : 1;
+        for (let k = 0; k < count; k++) {
+          const offset = (k - (count - 1) / 2) * 4;
+          ctx.beginPath();
+          ctx.moveTo(a.x - dy / len * offset, a.y + dx / len * offset);
+          ctx.lineTo(b.x - dy / len * offset, b.y + dx / len * offset);
+          ctx.stroke();
+        }
+      });
 
-      // Star endpoints
-      ctx.fillStyle = '#ef4444';
-      ctx.beginPath();
-      ctx.arc(80, 200, 14, 0, Math.PI * 2);
-      ctx.arc(canvas.width - 80, 200, 14, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 14px JetBrains Mono';
-      ctx.fillText('*', 80, 204);
-      ctx.fillText('*', canvas.width - 80, 204);
-
-      // Central pill
-      ctx.fillStyle = '#0f172a';
-      ctx.strokeStyle = '#38bdf8';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.roundRect(canvas.width / 2 - 120, 175, 240, 50, 12);
-      ctx.fill();
-      ctx.stroke();
-
-      ctx.fillStyle = '#38bdf8';
-      ctx.font = 'bold 14px JetBrains Mono';
-      ctx.fillText(`[ Illustrative repeat unit ]`, canvas.width / 2, 205);
+      const colors = { C: '#22d3ee', O: '#ef4444', N: '#3b82f6', F: '#10b981', Cl: '#22c55e', Br: '#b45309', I: '#8b5cf6', S: '#eab308', P: '#f97316', B: '#f472b6', H: '#f8fafc' };
+      graph.atoms3D.forEach(atom => {
+        const p = point(atom);
+        ctx.beginPath();
+        ctx.fillStyle = atom.link ? '#f59e0b' : (colors[atom.elem] || '#22d3ee');
+        ctx.arc(p.x, p.y, atom.link ? 16 : 18, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#020617';
+        ctx.font = 'bold 13px JetBrains Mono';
+        ctx.fillText(atom.link ? '*' : atom.elem, p.x, p.y + 5);
+      });
     }
 
     /* ==========================================================================
@@ -756,8 +785,8 @@
       if (!list || list.length === 0) {
         dropdown.innerHTML = `
           <div class="p-3 text-xs text-slate-400 flex items-center justify-between">
-            <span>No CSV record found for "<strong>${escapeHtml(query)}</strong>"</span>
-            <span class="text-[10px] font-mono text-amber-400">Model API is not connected</span>
+            <span>${tr('noCsvFound')} "<strong>${escapeHtml(query)}</strong>"</span>
+            <span class="text-[10px] font-mono text-amber-400">${tr('noCsvStructureHint')}</span>
           </div>`;
         dropdown.classList.remove('hidden');
         return;
@@ -767,9 +796,9 @@
         const item = document.createElement('div');
         item.className = "p-2.5 hover:bg-slate-800/90 cursor-pointer transition flex flex-col space-y-0.5 text-xs";
         
-        const tgStr = p.tg_C ? `${p.tg_C} °C` : 'N/A';
-      const tmStr = p.tm_C ? `${p.tm_C} °C` : 'Not recorded';
-        const tdStr = p.td_C ? `${p.td_C} °C` : 'N/A';
+        const tgStr = p.tg_C ? `${p.tg_C} °C` : tr('nA');
+      const tmStr = p.tm_C ? `${p.tm_C} °C` : tr('notRecorded');
+        const tdStr = p.td_C ? `${p.td_C} °C` : tr('nA');
         const psmilesDisplay = p.psmiles || p.smiles || '';
 
         item.innerHTML = `
@@ -811,7 +840,7 @@
 
       const psmiles = rec.psmiles || rec.smiles || '';
       document.getElementById('psmilesInput').value = psmiles;
-      document.getElementById('moleculeTitle').textContent = `${rec.polymerName || rec.polymerId} — illustrative repeat-unit schematic`;
+      document.getElementById('moleculeTitle').textContent = `${rec.polymerName || rec.polymerId} — ${tr('illustrativeSuffix')}`;
 
       // Convert CSV record to polymer object
       const parsedTg = rec.tg_C ? parseFloat(rec.tg_C) : null;
@@ -846,7 +875,7 @@
       updatePolymerView(currentPolyData);
       render3DMolecule(currentPolyData);
       
-      showToast(`Loaded ${rec.polymerName || rec.polymerId} from CSV!`);
+      showToast(`${tr('csvMatch')}: ${rec.polymerName || rec.polymerId}`);
     }
 
     function handlePsmilesManualEdit(val) {
@@ -856,16 +885,228 @@
 
       const starCount = (val.match(/\*/g) || []).length + (val.match(/\[\*\]/g) || []).length;
       const starTag = document.getElementById('starCountTag');
-      starTag.textContent = `${starCount} Terminal Points (*)`;
+      starTag.textContent = `${starCount} ${tr('terminalPoints')} (*)`;
     }
 
-    async function runPredictionTrigger(){const q=document.getElementById('polymerSearchInput').value.trim(),input=document.getElementById('psmilesInput').value.trim(),query=q||input;if(!query){showToast('Enter a polymer name, ID, or repeat-unit string.');return;}const btn=document.getElementById('predictBtn'),label=document.getElementById('predictBtnText');btn.disabled=true;label.textContent='Checking CSV…';try{const r=await fetch(`/api/polymers/lookup?query=${encodeURIComponent(query)}`);if(!r.ok)throw Error();const result=await r.json();if(result.found&&result.polymer){selectPolymerRecord(result.polymer);showToast('Loaded matching CSV record.');}else showModelPending(query,input||query);}catch(e){showModelPending(query,input||query);showToast('CSV lookup failed. No prediction was generated.');}finally{btn.disabled=false;label.textContent='Check CSV / predict when API is available';}}
-function showModelPending(name,repeatUnit){const g=generate3DFromSmiles(repeatUnit);currentPolyData={name,psmiles:repeatUnit,class:'Not found in CSV — model API is not connected',isCsvSource:false,modelPending:true,tg:null,tm:null,td:null,atoms3D:g.atoms3D,bonds3D:g.bonds3D};document.getElementById('psmilesInput').value=repeatUnit;document.getElementById('moleculeTitle').textContent=`${name} — illustrative repeat-unit schematic`;updatePolymerView(currentPolyData);render3DMolecule(currentPolyData);}
+    async function runPredictionTrigger() {
+      const q = document.getElementById('polymerSearchInput').value.trim();
+      const input = document.getElementById('psmilesInput').value.trim();
+      const query = q || input;
+      if (!query) { showToast(tr('enterQuery')); return; }
 
-function generate3DFromSmiles(smiles=''){const s=String(smiles||'');const atoms3D=[{elem:'C',x:-4,y:0,z:0,link:true},{elem:'C',x:-2,y:.7,z:.1},{elem:'C',x:0,y:-.2,z:0},{elem:'C',x:2,y:.7,z:-.1},{elem:'C',x:4,y:0,z:0,link:true}],bonds3D=[[0,1],[1,2],[2,3],[3,4]];if(/[cC]1|[cC]2|c{3,}/.test(s)){const ring=[[0,-1.9,.4],[1.1,-2.7,.6],[1.1,-4,.8],[0,-4.7,.8],[-1.1,-4,.6],[-1.1,-2.7,.4]];const start=atoms3D.length;ring.forEach(([x,y,z])=>atoms3D.push({elem:'C',x,y,z}));bonds3D.push([2,start],[start,start+1],[start+1,start+2],[start+2,start+3],[start+3,start+4],[start+4,start+5],[start+5,start]);}const branches=[['O',/O/.test(s),-2,2,.3,1],['N',/N|n/.test(s),2,2,-.3,3],['F',/F/.test(s),0,1.4,-.8,2],['Cl',/Cl/.test(s),-3,2,-.6,0],['S',/S/.test(s),3,2,.6,4]];branches.forEach(([elem,found,x,y,z,to])=>{if(found){const i=atoms3D.push({elem,x,y,z})-1;bonds3D.push([to,i]);}});return{atoms3D,bonds3D};}
+      const btn = document.getElementById('predictBtn');
+      const label = document.getElementById('predictBtnText');
+      btn.disabled = true;
+      label.textContent = tr('checkingCsv');
+      try {
+        const response = await fetch('/api/polymers/resolve', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query, PSMILES: input || null })
+        });
+        const result = await response.json();
+        if (response.status === 400) {
+          showToast(tr('enterStructure'));
+          return;
+        }
+        if (!response.ok) throw new Error(result.detail || 'The model API is unavailable.');
+        if (result.found && result.polymer) {
+          selectPolymerRecord(result.polymer);
+          showToast(tr('csvAndModelLoaded'));
+        } else if (result.predictions) {
+          showModelResult(result.name || query, result.input, result.predictions);
+          showToast(tr('modelLoaded'));
+        }
+      } catch (e) {
+        showModelPending(query, input);
+        showToast(tr('modelFailed'));
+      } finally {
+        btn.disabled = false;
+        label.textContent = tr('predictBtn');
+      }
+    }
 
-function updatePolymerView(data){document.getElementById('moleculeTitle').textContent=data.name;const src=document.getElementById('sourceIndicatorTag'),badge=document.getElementById('lookupStatusBadge'),txt=document.getElementById('lookupStatusText');if(data.isCsvSource){src.textContent=`Source: polymer_master.csv (${data.id||'record'})`;src.className='text-emerald-400 font-mono';txt.textContent='CSV record';badge.className='text-[11px] font-mono px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-800 flex items-center space-x-1';}else{src.textContent='Illustrative repeat-unit schematic';src.className='text-slate-400 font-mono';txt.textContent=data.modelPending?'Model API not connected':'Ready';badge.className='text-[11px] font-mono px-2 py-0.5 rounded-full bg-slate-900 text-slate-300 border border-slate-700 flex items-center space-x-1';}const show=(id,kid,sid,v,ps)=>{const a=document.getElementById(id),k=document.getElementById(kid),b=document.getElementById(sid),n=v==null||v===''?NaN:Number(v);if(Number.isFinite(n)){a.textContent=`${n.toFixed(1)} °C`;k.textContent=`${(n+273.15).toFixed(2)} K`;b.textContent=ps||(data.isCsvSource?'CSV record':'Model estimate');}else{a.textContent='Not available';k.textContent=data.modelPending?'Model API not connected':'No value recorded in CSV';b.textContent=data.modelPending?'Pending model API':(data.isCsvSource?'Not recorded':'No prediction');}};show('tgValueDisplay','tgKelvinDisplay','tgSourceDisplay',data.tg,data.tg_source);show('tmValueDisplay','tmKelvinDisplay','tmSourceDisplay',data.tm,data.tm_source);show('tdValueDisplay','tdKelvinDisplay','tdSourceDisplay',data.td,data.td_source);}
+    function showModelResult(name, repeatUnit, predictions) {
+      const g = generate3DFromSmiles(repeatUnit);
+      currentPolyData = {
+        name, psmiles: repeatUnit,
+        class: 'Model API prediction', isCsvSource: false, modelPredicted: true,
+        tg: predictions.Tg ?? predictions.tg ?? null, tm: predictions.Tm ?? predictions.tm ?? null, td: predictions.Td ?? predictions.td ?? null,
+        tg_source: 'Model API', tm_source: 'Model API', td_source: 'Model API',
+        atoms3D: g.atoms3D, bonds3D: g.bonds3D
+      };
+      document.getElementById('psmilesInput').value = repeatUnit;
+      updatePolymerView(currentPolyData);
+      render3DMolecule(currentPolyData);
+    }
+function showModelPending(name, repeatUnit) {
+  const g = generate3DFromSmiles(repeatUnit);
+  currentPolyData = { name, psmiles: repeatUnit, class: tr('modelUnavailable'), isCsvSource: false, modelPending: true, tg: null, tm: null, td: null, atoms3D: g.atoms3D, bonds3D: g.bonds3D };
+  document.getElementById('psmilesInput').value = repeatUnit;
+  updatePolymerView(currentPolyData);
+  render3DMolecule(currentPolyData);
+}
+function generate3DFromSmiles(smiles = '') {
+  const source = String(smiles || '').trim();
+  if (!source) return { atoms3D: [], bonds3D: [] };
 
+  const atoms = [];
+  const bonds = [];
+  const branches = [];
+  const rings = new Map();
+  let current = -1;
+  let pendingBond = null;
+  const addAtom = (elem, aromatic = false) => {
+    const id = atoms.push({ elem, aromatic, link: elem === '*' }) - 1;
+    if (current >= 0) {
+      const order = pendingBond || (atoms[current].aromatic && aromatic ? 'aromatic' : 'single');
+      bonds.push([current, id, order]);
+    }
+    current = id;
+    pendingBond = null;
+  };
+
+  for (let i = 0; i < source.length;) {
+    const ch = source[i];
+    if (ch === '[') {
+      const end = source.indexOf(']', i + 1);
+      if (end < 0) return { atoms3D: [], bonds3D: [] };
+      const body = source.slice(i + 1, end);
+      const token = body.match(/^\d*(Cl|Br|[A-Z][a-z]?|[bcnops]|\*)/);
+      if (!token) return { atoms3D: [], bonds3D: [] };
+      const rawElem = token[1];
+      addAtom(rawElem === '*' ? '*' : rawElem.length === 1 ? rawElem.toUpperCase() : rawElem, /^[bcnops]$/.test(rawElem));
+      i = end + 1;
+      continue;
+    }
+    if (ch === '(') {
+      if (current < 0) return { atoms3D: [], bonds3D: [] };
+      branches.push(current);
+      i++;
+      continue;
+    }
+    if (ch === ')') {
+      if (!branches.length) return { atoms3D: [], bonds3D: [] };
+      current = branches.pop();
+      pendingBond = null;
+      i++;
+      continue;
+    }
+    if (ch === '.') {
+      current = -1;
+      pendingBond = null;
+      i++;
+      continue;
+    }
+    if (ch === '-' || ch === '=' || ch === '#' || ch === ':' || ch === '/' || ch === '\\') {
+      pendingBond = ch === '=' ? 'double' : ch === '#' ? 'triple' : ch === ':' ? 'aromatic' : 'single';
+      i++;
+      continue;
+    }
+    if (/\d/.test(ch) || ch === '%') {
+      if (current < 0) return { atoms3D: [], bonds3D: [] };
+      let ringId;
+      if (ch === '%') {
+        ringId = source.slice(i + 1, i + 3);
+        if (!/^\d{2}$/.test(ringId)) return { atoms3D: [], bonds3D: [] };
+        i += 3;
+      } else {
+        ringId = ch;
+        i++;
+      }
+      if (rings.has(ringId)) {
+        const entry = rings.get(ringId);
+        const order = pendingBond || entry.order || (atoms[current].aromatic && atoms[entry.atom].aromatic ? 'aromatic' : 'single');
+        bonds.push([entry.atom, current, order]);
+        rings.delete(ringId);
+      } else {
+        rings.set(ringId, { atom: current, order: pendingBond });
+      }
+      pendingBond = null;
+      continue;
+    }
+
+    const token = source.slice(i).match(/^(Cl|Br|[BCNOPSFIH]|[bcnops]|\*)/);
+    if (!token) return { atoms3D: [], bonds3D: [] };
+    const rawElem = token[1];
+    addAtom(rawElem === '*' ? '*' : rawElem.length === 1 ? rawElem.toUpperCase() : rawElem, /^[bcnops]$/.test(rawElem));
+    i += rawElem.length;
+  }
+  if (branches.length || rings.size || !atoms.length) return { atoms3D: [], bonds3D: [] };
+
+  const adjacency = atoms.map(() => []);
+  bonds.forEach(([a, b]) => { adjacency[a].push(b); adjacency[b].push(a); });
+  const coords = Array(atoms.length).fill(null);
+  const incoming = Array(atoms.length).fill(0);
+  let componentOffset = 0;
+  for (let root = 0; root < atoms.length; root++) {
+    if (coords[root]) continue;
+      coords[root] = { x: componentOffset, y: 0 };
+    const queue = [root];
+    while (queue.length) {
+      const parent = queue.shift();
+      const children = adjacency[parent].filter(id => !coords[id]);
+      children.forEach((child, index) => {
+        const spread = (index - (children.length - 1) / 2) * 1.25;
+        // Continue along the incoming direction instead of folding the chain
+        // back onto itself (which made COC place both carbons at the same point).
+        const angle = (parent === root ? 0 : incoming[parent]) + spread;
+        coords[child] = { x: coords[parent].x + Math.cos(angle), y: coords[parent].y + Math.sin(angle) };
+        incoming[child] = angle;
+        queue.push(child);
+      });
+    }
+    componentOffset = Math.max(...coords.filter(Boolean).map(point => point.x)) + 2;
+  }
+
+  const minX = Math.min(...coords.map(point => point.x)), maxX = Math.max(...coords.map(point => point.x));
+  const minY = Math.min(...coords.map(point => point.y)), maxY = Math.max(...coords.map(point => point.y));
+  const scale = 8 / Math.max(1, maxX - minX, maxY - minY);
+  const atoms3D = atoms.map((atom, index) => ({
+    ...atom,
+    x: (coords[index].x - (minX + maxX) / 2) * scale,
+    y: (coords[index].y - (minY + maxY) / 2) * scale,
+    z: Math.sin(index * 2.4) * 0.12
+  }));
+  return { atoms3D, bonds3D: bonds };
+}
+
+function updatePolymerView(data) {
+  document.getElementById('moleculeTitle').textContent = data.modelPredicted ? `${data.name} — ${tr('modelPrediction')}` : data.modelPending ? `${data.name} — ${tr('modelUnavailable')}` : data.name;
+  const src = document.getElementById('sourceIndicatorTag');
+  const badge = document.getElementById('lookupStatusBadge');
+  const txt = document.getElementById('lookupStatusText');
+  if (data.isCsvSource) {
+    src.textContent = `${tr('csvRecord')}: polymer_master.csv (${data.id || 'record'})`;
+    src.className = 'text-emerald-400 font-mono';
+    txt.textContent = tr('csvMatch');
+    badge.className = 'text-[11px] font-mono px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-800 flex items-center space-x-1';
+  } else {
+    src.textContent = data.modelPredicted ? `${tr('propSource')} ${tr('modelApi')}` : tr('illustrativeLabel');
+    src.className = 'text-slate-400 font-mono';
+    txt.textContent = data.modelPending ? tr('modelUnavailable') : data.modelPredicted ? tr('modelPrediction') : tr('ready');
+    badge.className = 'text-[11px] font-mono px-2 py-0.5 rounded-full bg-slate-900 text-slate-300 border border-slate-700 flex items-center space-x-1';
+  }
+
+  const show = (id, kelvinId, sourceId, value, propertySource) => {
+    const valueEl = document.getElementById(id);
+    const kelvinEl = document.getElementById(kelvinId);
+    const sourceEl = document.getElementById(sourceId);
+    const n = value == null || value === '' ? NaN : Number(value);
+    if (Number.isFinite(n)) {
+      valueEl.textContent = `${n.toFixed(1)} °C`;
+      kelvinEl.textContent = `${(n + 273.15).toFixed(2)} K`;
+      sourceEl.textContent = propertySource === 'Model API' ? tr('modelApi') : propertySource === 'Not recorded' ? tr('notRecorded') : propertySource || (data.isCsvSource ? tr('csvRecord') : tr('modelApi'));
+    } else {
+      valueEl.textContent = tr('notAvailable');
+      kelvinEl.textContent = data.modelPending ? tr('modelNotConnected') : data.isCsvSource ? tr('noValueCsv') : tr('noPrediction');
+      sourceEl.textContent = data.modelPending ? tr('pendingModel') : data.isCsvSource ? tr('notRecorded') : tr('noPrediction');
+    }
+  };
+  show('tgValueDisplay', 'tgKelvinDisplay', 'tgSourceDisplay', data.tg, data.tg_source);
+  show('tmValueDisplay', 'tmKelvinDisplay', 'tmSourceDisplay', data.tm, data.tm_source);
+  show('tdValueDisplay', 'tdKelvinDisplay', 'tdSourceDisplay', data.td, data.td_source);
+}
 function escapeHtml(str) {
       if (!str) return '';
       return String(str)
@@ -878,7 +1119,7 @@ function escapeHtml(str) {
     function copyPSMILES() {
       const str = document.getElementById('psmilesInput').value;
       navigator.clipboard.writeText(str).then(() => {
-        showToast("PSMILES copied to clipboard!");
+        showToast(tr('toastCopied'));
       });
     }
 
@@ -901,7 +1142,7 @@ function escapeHtml(str) {
       a.download = `${currentPolyData.name.replace(/[^a-zA-Z0-9]/g, '_')}_polymer_properties.json`;
       a.click();
       URL.revokeObjectURL(url);
-      showToast("Downloaded polymer properties JSON");
+      showToast(tr('toastDownloaded'));
     }
 
     /* ==========================================================================
@@ -909,85 +1150,90 @@ function escapeHtml(str) {
        ========================================================================== */
     const I18N = {
       en: {
-        headerSubtitle: "Polymer database lookup and thermal properties",
-        polyConfig: "Polymer Query & Input",
-        searchLabel: "Search Database",
-        csvReady: "CSV Ready",
-        searchPlaceholder: "Search polymer name, PSMILES, SLIMES, or POLY_ID...",
-        psmilesLabel: "Monomer PSMILES / Structure",
-        copyBtn: "Copy",
-        predictBtn: "Check CSV / predict when API is available",
-        visualizerSubtitle: "Illustrative repeat-unit schematic — not a generated molecular structure",
-        view3D: "3D schematic",
-        view2D: "2D schematic",
-        controlsHint: "Rotate • Zoom • Pan",
-        autoSpin: "Auto-Spin",
-        tgTitle: "Glass Transition (Tg)",
-        tmTitle: "Melting Point (Tm)",
-        tdTitle: "Decomposition (Td)",
-        propSource: "Source:",
-        toastCopied: "Copied to clipboard!",
-        toastDownloaded: "Downloaded Prediction JSON"
+        headerSubtitle: "Polymer database lookup and thermal properties", languageLabel: "Lang:",
+        polyConfig: "Polymer Query & Input", searchLabel: "Search Database", csvReady: "CSV Ready",
+        searchPlaceholder: "Search polymer name, PSMILES, SMILES, or POLY_ID...",
+        psmilesLabel: "Polymer Repeat-Unit Structure (PSMILES / SMILES)", structurePlaceholder: "e.g. *CC(*)c1ccccc1",
+        copyBtn: "Copy", predictBtn: "Confirm", checkingCsv: "Checking CSV…",
+        visualizerSubtitle: "Atom connectivity follows the input. 3D layout is illustrative; implicit hydrogens are not shown.",
+        visualizerEmpty: "Enter a supported SMILES or PSMILES string to show its atoms and bonds.", visualizerUnsupported: "This structure format cannot be drawn here. Check the SMILES or PSMILES input.",
+        view3D: "3D schematic", view2D: "2D schematic", controlsHint: "Drag to rotate • Scroll to zoom • Right-click to pan",
+        autoSpin: "Auto-Spin", gentleMotion: "Gentle motion", illustrativeLabel: "Illustrative schematic",
+        tgTitle: "Glass Transition (Tg)", tmTitle: "Melting Point (Tm)", tdTitle: "Decomposition (Td)",
+        propSource: "Source:", githubRepo: "GitHub Repository", footerTitle: "© 2026 PolyStorage — Polymer Database Lookup", pageTitle: "Polymer Database Lookup",
+        exportTitle: "Export polymer properties as JSON", repeatLinkHint: "Asterisks indicate repeat-unit linkages", resetCamera: "Reset Camera",
+        modelDisclaimerTitle: "Important: model estimates",
+        modelDisclaimer: "Model predictions are estimates and may be inaccurate. The model does not account for whether the polymer can form the phase associated with the predicted thermal transition.",
+        terminalPoints: "Terminal points", csvRecord: "CSV record", modelApi: "Model API",
+        modelPrediction: "Model API prediction", modelUnavailable: "Model API unavailable", ready: "Ready",
+        csvMatch: "CSV record", noValueCsv: "No value recorded in CSV", noPrediction: "No prediction", notAvailable: "Not available",
+        notRecorded: "Not recorded", pendingModel: "Pending model API", modelNotConnected: "Model API not connected",
+        illustrativeSuffix: "illustrative repeat-unit schematic", noCsvFound: "No CSV record found for", noCsvStructureHint: "Enter a repeat-unit structure to request a model prediction.",
+        nA: "N/A", terminalLink: "Repeat-unit link (*)", atomCarbon: "Carbon", atomOxygen: "Oxygen", atomNitrogen: "Nitrogen", atomFluorine: "Fluorine", atomChlorine: "Chlorine", atomSulfur: "Sulfur", atomHydrogen: "Hydrogen",
+        enterQuery: "Enter a polymer name, ID, or repeat-unit string.", enterStructure: "No CSV match. Enter a PSMILES or SMILES repeat-unit string for prediction.",
+        csvAndModelLoaded: "Loaded CSV data; the model filled any missing values.", modelLoaded: "Loaded model API predictions.",
+        modelFailed: "Model API unavailable. No prediction was generated.", csvLoadFailed: "Could not load CSV data.",
+        toastIdle: "Action completed successfully", toastCopied: "Copied to clipboard!", toastDownloaded: "Downloaded polymer properties JSON", switchedLanguage: "Switched to English"
       },
       vi: {
-        headerSubtitle: "Tra cứu dữ liệu Polyme & Dự đoán nhiệt động ML",
-        polyConfig: "Tra cứu & Dữ liệu Polyme",
-        searchLabel: "Tìm kiếm dữ liệu",
-        csvReady: "Đã nạp CSV",
-        searchPlaceholder: "Nhập tên polyme, PSMILES, SLIMES hoặc mã ID...",
-        psmilesLabel: "Chuỗi cấu trúc PSMILES",
-        copyBtn: "Sao chép",
-        chainUnits: "Độ dài mắt xích (n)",
-        predictBtn: "Kiểm tra CSV / dự đoán khi API sẵn sàng",
-        visualizerSubtitle: "Sơ đồ minh họa; không phải cấu trúc phân tử 3D được tính toán",
-        view3D: "Sơ đồ 3D",
-        view2D: "Sơ đồ 2D",
-        controlsHint: "Xoay • Phóng to • Di chuyển",
-        autoSpin: "Tự xoay",
-        tgTitle: "Nhiệt độ chuyển thủy tinh (Tg)",
-        tmTitle: "Điểm nóng chảy (Tm)",
-        tdTitle: "Nhiệt độ phân hủy (Td)",
-        propSource: "Nguồn dữ liệu:",
-        toastCopied: "Đã sao chép vào bộ nhớ tạm!",
-        toastDownloaded: "Đã tải file JSON"
+        headerSubtitle: "Tra cứu cơ sở dữ liệu polyme và các tính chất nhiệt", languageLabel: "Ngôn ngữ:",
+        polyConfig: "Tra cứu và nhập polyme", searchLabel: "Tìm trong cơ sở dữ liệu", csvReady: "CSV đã sẵn sàng",
+        searchPlaceholder: "Tìm theo tên polyme, PSMILES, SMILES hoặc mã POLY_ID...",
+        psmilesLabel: "Cấu trúc mắt xích polyme (PSMILES / SMILES)", structurePlaceholder: "Ví dụ: *CC(*)c1ccccc1",
+        copyBtn: "Sao chép", predictBtn: "Xác nhận", checkingCsv: "Đang tra cứu CSV…",
+        visualizerSubtitle: "Nguyên tử và liên kết bám theo chuỗi đầu vào. Bố cục 3D chỉ mang tính minh họa; không hiển thị hydro ẩn.",
+        visualizerEmpty: "Nhập chuỗi SMILES hoặc PSMILES được hỗ trợ để hiển thị nguyên tử và liên kết.", visualizerUnsupported: "Không thể vẽ định dạng cấu trúc này. Hãy kiểm tra chuỗi SMILES hoặc PSMILES.",
+        view3D: "Sơ đồ 3D", view2D: "Sơ đồ 2D", controlsHint: "Kéo để xoay • Cuộn để thu phóng • Nhấp chuột phải để di chuyển",
+        autoSpin: "Tự động xoay", gentleMotion: "Chuyển động nhẹ", illustrativeLabel: "Sơ đồ minh họa",
+        tgTitle: "Nhiệt độ chuyển thủy tinh (Tg)", tmTitle: "Nhiệt độ nóng chảy (Tm)", tdTitle: "Nhiệt độ phân hủy (Td)",
+        propSource: "Nguồn dữ liệu:", githubRepo: "Kho lưu trữ GitHub", footerTitle: "© 2026 PolyStorage — Tra cứu cơ sở dữ liệu polyme", pageTitle: "Tra cứu dữ liệu polyme",
+        exportTitle: "Xuất các tính chất polyme dưới dạng JSON", repeatLinkHint: "Dấu hoa thị biểu thị vị trí nối giữa các mắt xích", resetCamera: "Đặt lại góc nhìn",
+        modelDisclaimerTitle: "Lưu ý quan trọng: kết quả chỉ là ước tính",
+        modelDisclaimer: "Các giá trị do mô hình dự đoán chỉ là ước tính và có thể không chính xác. Mô hình không xét đến khả năng polyme hình thành pha tương ứng với chuyển biến nhiệt được dự đoán.",
+        terminalPoints: "điểm nối mắt xích", csvRecord: "Bản ghi CSV", modelApi: "API mô hình",
+        modelPrediction: "Dự đoán từ API mô hình", modelUnavailable: "API mô hình không khả dụng", ready: "Sẵn sàng",
+        csvMatch: "Bản ghi CSV", noValueCsv: "CSV không có dữ liệu cho giá trị này", noPrediction: "Chưa có dự đoán", notAvailable: "Không có dữ liệu",
+        notRecorded: "Không được ghi nhận", pendingModel: "Đang chờ API mô hình", modelNotConnected: "Chưa kết nối API mô hình",
+        illustrativeSuffix: "sơ đồ mắt xích minh họa", noCsvFound: "Không tìm thấy bản ghi CSV cho", noCsvStructureHint: "Nhập cấu trúc mắt xích để yêu cầu mô hình dự đoán.",
+        nA: "Không có", terminalLink: "Điểm nối mắt xích (*)", atomCarbon: "Carbon", atomOxygen: "Oxy", atomNitrogen: "Nitơ", atomFluorine: "Flo", atomChlorine: "Clo", atomSulfur: "Lưu huỳnh", atomHydrogen: "Hydro",
+        enterQuery: "Nhập tên polyme, mã ID hoặc chuỗi mắt xích.", enterStructure: "Không tìm thấy trong CSV. Nhập chuỗi mắt xích PSMILES hoặc SMILES để dự đoán.",
+        csvAndModelLoaded: "Đã tải dữ liệu CSV; mô hình bổ sung các giá trị còn thiếu.", modelLoaded: "Đã tải kết quả dự đoán từ API mô hình.",
+        modelFailed: "API mô hình không khả dụng. Không tạo dự đoán.", csvLoadFailed: "Không thể tải dữ liệu CSV.",
+        toastIdle: "Thao tác đã hoàn tất", toastCopied: "Đã sao chép vào bộ nhớ tạm!", toastDownloaded: "Đã tải JSON về các tính chất polyme", switchedLanguage: "Đã chuyển sang tiếng Việt"
       }
     };
 
     let currentLang = 'en';
 
-    function changeLanguage(lang) {
-      currentLang = lang;
-      const dict = I18N[lang] || I18N.en;
-
-      // Update textContent for elements with data-i18n
-      document.querySelectorAll('[data-i18n]').forEach(el => {
-        const key = el.getAttribute('data-i18n');
-        if (dict[key]) {
-          el.textContent = dict[key];
-        }
-      });
-
-      // Update placeholders
-      document.querySelectorAll('[data-i18n-ph]').forEach(el => {
-        const key = el.getAttribute('data-i18n-ph');
-        if (dict[key]) {
-          el.placeholder = dict[key];
-        }
-      });
-
-      // Update the lookup badge text appropriately
-      const lookupBadgeText = document.getElementById('lookupStatusText');
-      if (lookupBadgeText) {
-        if (currentPolyData.isCsvSource) {
-          lookupBadgeText.textContent = lang === 'vi' ? 'Dữ liệu CSV' : 'CSV Match';
-        } else {
-          lookupBadgeText.textContent = lang === 'vi' ? 'Dự đoán mô hình' : 'Model Estimate';
-        }
-      }
-
-      showToast(lang === 'vi' ? "Đã chuyển sang Tiếng Việt" : "Switched to English");
+    function tr(key) {
+      return (I18N[currentLang] && I18N[currentLang][key]) || I18N.en[key] || key;
     }
 
+    function changeLanguage(lang) {
+      currentLang = lang === 'vi' ? 'vi' : 'en';
+      document.documentElement.lang = currentLang;
+      document.title = `PolyStorage — ${I18N[currentLang].pageTitle}`;
+      const dict = I18N[currentLang];
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (dict[key]) el.textContent = dict[key];
+      });
+      document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+        const key = el.getAttribute('data-i18n-ph');
+        if (dict[key]) el.placeholder = dict[key];
+      });
+      document.querySelectorAll('[data-i18n-title]').forEach(el => {
+        const key = el.getAttribute('data-i18n-title');
+        if (dict[key]) el.title = dict[key];
+      });
+      updatePolymerView(currentPolyData);
+      render3DMolecule(currentPolyData);
+      const structure = document.getElementById('psmilesInput').value;
+      const terminalCount = (structure.match(/\*/g) || []).length + (structure.match(/\[\*\]/g) || []).length;
+      document.getElementById('starCountTag').textContent = `${terminalCount} ${tr('terminalPoints')} (*)`;
+      if (!document.getElementById('structureCanvas').classList.contains('hidden')) render2DStructureFallback(currentPolyData);
+      showToast(tr('switchedLanguage'));
+    }
     function showToast(msg) {
       const toast = document.getElementById('toast');
       document.getElementById('toastText').textContent = msg;

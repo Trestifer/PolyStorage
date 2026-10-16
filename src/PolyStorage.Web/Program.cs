@@ -1,9 +1,12 @@
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Net.Http.Json;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddHttpClient();
+builder.Services.AddHttpClient<ModelApiClient>();
 builder.Services.AddSingleton<PolymerService>();
 
 var app = builder.Build();
@@ -45,8 +48,134 @@ app.MapGet("/api/polymers/lookup", async (string? query, PolymerService svc) =>
     return Results.Ok(new { found = false, source = "MODEL_ESTIMATE", polymer = (PolymerRecord?)null });
 });
 
+app.MapPost("/api/polymers/resolve", async (PolymerResolveRequest request, PolymerService svc, ModelApiClient modelApi, CancellationToken cancellationToken) =>
+{
+    await svc.EnsureDataLoadedAsync();
+    var lookup = request.Query ?? request.PSMILES ?? request.SMILES ?? string.Empty;
+    var match = svc.FindMatch(lookup);
+
+    if (match is not null)
+    {
+        // Preserve every value already recorded in the CSV. Ask the model only to fill missing properties.
+        var hasMissingProperty = string.IsNullOrWhiteSpace(match.Tg_C)
+            || string.IsNullOrWhiteSpace(match.Tm_C)
+            || string.IsNullOrWhiteSpace(match.Td_C);
+        var structure = !string.IsNullOrWhiteSpace(match.PSMILES) ? match.PSMILES : match.SMILES;
+        if (hasMissingProperty && !string.IsNullOrWhiteSpace(structure))
+        {
+            try
+            {
+                var predictions = await modelApi.PredictAsync(match.PSMILES, match.SMILES, cancellationToken);
+                if (string.IsNullOrWhiteSpace(match.Tg_C) && predictions.Tg is double tg)
+                {
+                    match.Tg_C = tg.ToString("0.##", CultureInfo.InvariantCulture);
+                    match.Tg_Source = "Model API";
+                }
+                if (string.IsNullOrWhiteSpace(match.Tm_C) && predictions.Tm is double tm)
+                {
+                    match.Tm_C = tm.ToString("0.##", CultureInfo.InvariantCulture);
+                    match.Tm_Source = "Model API";
+                }
+                if (string.IsNullOrWhiteSpace(match.Td_C) && predictions.Td is double td)
+                {
+                    match.Td_C = td.ToString("0.##", CultureInfo.InvariantCulture);
+                    match.Td_Source = "Model API";
+                }
+            }
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or InvalidDataException)
+            {
+                Console.WriteLine($"[ModelApi] Could not fill missing CSV properties: {ex.Message}");
+            }
+        }
+
+        return Results.Ok(new { found = true, source = "CSV", polymer = match });
+    }
+
+    var repeatUnit = !string.IsNullOrWhiteSpace(request.PSMILES) ? request.PSMILES : request.SMILES;
+    if (string.IsNullOrWhiteSpace(repeatUnit))
+    {
+        return Results.BadRequest(new { error = "No CSV match. Enter a PSMILES or SMILES repeat-unit string for model prediction." });
+    }
+
+    try
+    {
+        var predictions = await modelApi.PredictAsync(request.PSMILES, request.SMILES, cancellationToken);
+        return Results.Ok(new
+        {
+            found = false,
+            source = "MODEL_API",
+            name = lookup,
+            input = repeatUnit,
+            unit = "°C",
+            predictions = new { Tg = predictions.Tg, Tm = predictions.Tm, Td = predictions.Td }
+        });
+    }
+    catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or InvalidDataException)
+    {
+        Console.WriteLine($"[ModelApi] Prediction failed: {ex.Message}");
+        return Results.Problem(
+            title: "Model API unavailable",
+            detail: "The CSV had no matching record and the model API could not return a prediction. Check that the model service and ngrok tunnel are running.",
+            statusCode: StatusCodes.Status503ServiceUnavailable);
+    }
+});
 app.Run();
 
+
+public sealed record PolymerResolveRequest(string? Query, string? PSMILES, string? SMILES);
+public sealed record ThermalPredictions(double? Tg, double? Tm, double? Td);
+
+public sealed class ModelApiClient
+{
+    private readonly HttpClient _httpClient;
+    private readonly string _baseUrl;
+    private readonly string _predictPath;
+
+    public ModelApiClient(HttpClient httpClient, IConfiguration configuration)
+    {
+        _httpClient = httpClient;
+        _httpClient.Timeout = TimeSpan.FromSeconds(configuration.GetValue("ModelApi:TimeoutSeconds", 20));
+        _baseUrl = configuration["ModelApi:BaseUrl"] ?? throw new InvalidOperationException("ModelApi:BaseUrl is not configured.");
+        _predictPath = configuration["ModelApi:PredictPath"] ?? "/predict";
+    }
+
+    public async Task<ThermalPredictions> PredictAsync(string? psmiles, string? smiles, CancellationToken cancellationToken)
+    {
+        var baseUrl = _baseUrl.EndsWith('/') ? _baseUrl : _baseUrl + "/";
+        var path = _predictPath.TrimStart('/');
+        using var request = new HttpRequestMessage(HttpMethod.Post, new Uri(new Uri(baseUrl), path))
+        {
+            Content = JsonContent.Create(new Dictionary<string, string?> { ["PSMILES"] = psmiles, ["SMILES"] = smiles })
+        };
+        request.Headers.TryAddWithoutValidation("ngrok-skip-browser-warning", "true");
+
+        using var response = await _httpClient.SendAsync(request, cancellationToken);
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new HttpRequestException($"Model API returned HTTP {(int)response.StatusCode}.");
+        }
+
+        var payload = await response.Content.ReadFromJsonAsync<ModelApiResponse>(
+            new JsonSerializerOptions(JsonSerializerDefaults.Web) { PropertyNameCaseInsensitive = true }, cancellationToken);
+        if (payload?.Predictions is null)
+        {
+            throw new InvalidDataException("Model API response did not contain predictions.");
+        }
+
+        return new ThermalPredictions(
+            GetValue(payload.Predictions, "Tg"),
+            GetValue(payload.Predictions, "Tm"),
+            GetValue(payload.Predictions, "Td"));
+    }
+
+    private static double? GetValue(Dictionary<string, double> values, string key) =>
+        values.TryGetValue(key, out var value) && double.IsFinite(value) ? value : null;
+
+    private sealed class ModelApiResponse
+    {
+        public Dictionary<string, double>? Predictions { get; set; }
+    }
+}
 public class PolymerRecord
 {
     public string PolymerId { get; set; } = "";
@@ -225,10 +354,11 @@ public class PolymerService
             string.Equals(r.PolymerId, input, StringComparison.OrdinalIgnoreCase));
         if (exact != null) return exact;
 
-        // Substring / Contains match
+        // Allow partial lookup for human-readable names and IDs, but never match a
+        // structure by substring: short SMILES (for example, CCO) are common in
+        // unrelated repeat-unit structures and must not replace the user's input.
         return _records.FirstOrDefault(r =>
             (!string.IsNullOrEmpty(r.PolymerName) && r.PolymerName.Contains(input, StringComparison.OrdinalIgnoreCase)) ||
-            (!string.IsNullOrEmpty(r.PSMILES) && r.PSMILES.Contains(input, StringComparison.OrdinalIgnoreCase)) ||
-            (!string.IsNullOrEmpty(r.SMILES) && r.SMILES.Contains(input, StringComparison.OrdinalIgnoreCase)));
+            (!string.IsNullOrEmpty(r.PolymerId) && r.PolymerId.Contains(input, StringComparison.OrdinalIgnoreCase)));
     }
 }
