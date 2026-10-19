@@ -432,7 +432,7 @@
       controls = new THREE.OrbitControls(camera, renderer.domElement);
       controls.enableDamping = true;
       controls.dampingFactor = 0.08;
-      controls.maxDistance = 25;
+      controls.maxDistance = 120;
       controls.minDistance = 4;
 
       // Lights
@@ -582,6 +582,22 @@
       const center = box.getCenter(new THREE.Vector3());
       moleculeGroup.position.sub(center);
 
+      // Keep large repeat units readable by framing the full structure instead
+      // of squeezing all coordinates into the same small fixed cube.
+      const framedBox = box.clone().translate(moleculeGroup.position);
+      const size = framedBox.getSize(new THREE.Vector3());
+      const halfFov = THREE.MathUtils.degToRad(camera.fov / 2);
+      const viewSpan = Math.max(size.y, size.x / camera.aspect);
+      const distance = Math.max(14, viewSpan / (2 * Math.tan(halfFov)) * 1.2 + size.z / 2);
+      camera.position.set(0, 0, distance);
+      camera.near = Math.max(0.1, distance / 100);
+      camera.far = distance * 10;
+      camera.updateProjectionMatrix();
+      controls.target.set(0, 0, 0);
+      controls.maxDistance = Math.max(120, distance * 3);
+      controls.update();
+      controls.saveState();
+
       scene.add(moleculeGroup);
 
       // Dynamically update the element legend for ONLY the elements present in this molecule
@@ -681,51 +697,89 @@
     function render2DStructureFallback(data) {
       const canvas = document.getElementById('structureCanvas');
       const ctx = canvas.getContext('2d');
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const width = canvas.width;
+      const height = canvas.height;
+      const background = ctx.createLinearGradient(0, 0, width, height);
+      background.addColorStop(0, '#050a14');
+      background.addColorStop(1, '#091321');
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = background;
+      ctx.fillRect(0, 0, width, height);
+
       const graph = generate3DFromSmiles(data.psmiles);
-      ctx.textAlign = 'center';
       if (!graph.atoms3D.length) {
-        ctx.fillStyle = '#cbd5e1';
-        ctx.font = '16px Plus Jakarta Sans';
-        ctx.fillText(tr(data.psmiles ? 'visualizerUnsupported' : 'visualizerEmpty'), canvas.width / 2, canvas.height / 2);
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '14px "Plus Jakarta Sans", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(tr(data.psmiles ? 'visualizerUnsupported' : 'visualizerEmpty'), width / 2, height / 2);
         return;
       }
 
       const xs = graph.atoms3D.map(atom => atom.x);
       const ys = graph.atoms3D.map(atom => atom.y);
-      const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
-      const scale = Math.min(70, 430 / Math.max(1, maxX - minX), 210 / Math.max(1, maxY - minY));
-      const centerX = (minX + maxX) / 2, centerY = (minY + maxY) / 2;
-      const point = atom => ({ x: canvas.width / 2 + (atom.x - centerX) * scale, y: canvas.height / 2 + (atom.y - centerY) * scale });
+      const minX = Math.min(...xs), maxX = Math.max(...xs);
+      const minY = Math.min(...ys), maxY = Math.max(...ys);
+      const rangeX = Math.max(1, maxX - minX);
+      const rangeY = Math.max(1, maxY - minY);
+      const scale = Math.min(76, (width - 76) / rangeX, (height - 76) / rangeY);
+      const centerX = (minX + maxX) / 2;
+      const centerY = (minY + maxY) / 2;
+      const point = atom => ({
+        x: width / 2 + (atom.x - centerX) * scale,
+        y: height / 2 - (atom.y - centerY) * scale
+      });
+      const colors = {
+        C: '#67e8f9', O: '#f87171', N: '#60a5fa', F: '#34d399',
+        Cl: '#4ade80', Br: '#d97706', I: '#a78bfa', S: '#facc15',
+        P: '#fb923c', B: '#f472b6', H: '#e2e8f0'
+      };
 
-      ctx.strokeStyle = '#94a3b8';
-      ctx.lineWidth = 3;
+      // Draw bonds first so the atom labels sit cleanly above every connection.
+      ctx.lineCap = 'round';
       graph.bonds3D.forEach(([i, j, order]) => {
-        const a = point(graph.atoms3D[i]), b = point(graph.atoms3D[j]);
-        const dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy) || 1;
+        const a = point(graph.atoms3D[i]);
+        const b = point(graph.atoms3D[j]);
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        const length = Math.hypot(dx, dy) || 1;
         const count = order === 'double' || order === 'aromatic' ? 2 : order === 'triple' ? 3 : 1;
-        for (let k = 0; k < count; k++) {
-          const offset = (k - (count - 1) / 2) * 4;
+        ctx.strokeStyle = order === 'aromatic' ? 'rgba(148, 163, 184, 0.8)' : '#a8b7ca';
+        ctx.lineWidth = count === 1 ? 2.4 : 1.8;
+        for (let index = 0; index < count; index++) {
+          const offset = (index - (count - 1) / 2) * 5;
           ctx.beginPath();
-          ctx.moveTo(a.x - dy / len * offset, a.y + dx / len * offset);
-          ctx.lineTo(b.x - dy / len * offset, b.y + dx / len * offset);
+          ctx.moveTo(a.x - (dy / length) * offset, a.y + (dx / length) * offset);
+          ctx.lineTo(b.x - (dy / length) * offset, b.y + (dx / length) * offset);
           ctx.stroke();
         }
       });
 
-      const colors = { C: '#22d3ee', O: '#ef4444', N: '#3b82f6', F: '#10b981', Cl: '#22c55e', Br: '#b45309', I: '#8b5cf6', S: '#eab308', P: '#f97316', B: '#f472b6', H: '#f8fafc' };
+      // Compact outlined labels keep every carbon explicit without masking the ring.
       graph.atoms3D.forEach(atom => {
         const p = point(atom);
+        const label = atom.link ? '*' : atom.elem;
+        const color = atom.link ? '#fbbf24' : (colors[atom.elem] || '#67e8f9');
+        const radius = label.length > 1 ? 15 : 12.5;
+        ctx.save();
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
+        ctx.shadowBlur = 6;
         ctx.beginPath();
-        ctx.fillStyle = atom.link ? '#f59e0b' : (colors[atom.elem] || '#22d3ee');
-        ctx.arc(p.x, p.y, atom.link ? 16 : 18, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+        ctx.fillStyle = '#0b1422';
         ctx.fill();
-        ctx.fillStyle = '#020617';
-        ctx.font = 'bold 13px JetBrains Mono';
-        ctx.fillText(atom.link ? '*' : atom.elem, p.x, p.y + 5);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = color;
+        ctx.font = `600 12px "JetBrains Mono", monospace`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(label, p.x, p.y + 0.5);
+        ctx.restore();
       });
     }
-
     /* ==========================================================================
        INTERACTIVE LOGIC, AUTOCOMPLETE & CSV LOOKUP ENGINE
        ========================================================================== */
@@ -954,6 +1008,7 @@ function generate3DFromSmiles(smiles = '') {
   const bonds = [];
   const branches = [];
   const rings = new Map();
+  const ringClosures = [];
   let current = -1;
   let pendingBond = null;
   const addAtom = (elem, aromatic = false) => {
@@ -1018,6 +1073,7 @@ function generate3DFromSmiles(smiles = '') {
         const entry = rings.get(ringId);
         const order = pendingBond || entry.order || (atoms[current].aromatic && atoms[entry.atom].aromatic ? 'aromatic' : 'single');
         bonds.push([entry.atom, current, order]);
+        ringClosures.push([entry.atom, current]);
         rings.delete(ringId);
       } else {
         rings.set(ringId, { atom: current, order: pendingBond });
@@ -1037,11 +1093,76 @@ function generate3DFromSmiles(smiles = '') {
   const adjacency = atoms.map(() => []);
   bonds.forEach(([a, b]) => { adjacency[a].push(b); adjacency[b].push(a); });
   const coords = Array(atoms.length).fill(null);
+  const fixedRingAtoms = new Set();
+  const ringCycles = [];
+
+  // Ring closures identify the exact cycle in the parsed molecular graph.
+  // Lay each cycle out as a regular polygon so force relaxation cannot fold
+  // the ring or collapse vertices on top of one another.
+  ringClosures.forEach(([start, end]) => {
+    const previous = new Map([[start, -1]]);
+    const queue = [start];
+    while (queue.length && !previous.has(end)) {
+      const atom = queue.shift();
+      for (const neighbor of adjacency[atom]) {
+        if ((atom === start && neighbor === end) || (atom === end && neighbor === start)) continue;
+        if (previous.has(neighbor)) continue;
+        previous.set(neighbor, atom);
+        queue.push(neighbor);
+      }
+    }
+    if (!previous.has(end)) return;
+
+    const cycle = [];
+    for (let atom = end; atom !== -1; atom = previous.get(atom)) cycle.push(atom);
+    cycle.reverse();
+    if (cycle.length < 3 || cycle.some(atom => fixedRingAtoms.has(atom))) return;
+
+    const radius = 1.55 / (2 * Math.sin(Math.PI / cycle.length));
+    cycle.forEach((atom, index) => {
+      const angle = Math.PI + (2 * Math.PI * index) / cycle.length;
+      coords[atom] = { x: radius * Math.cos(angle), y: radius * Math.sin(angle) };
+      fixedRingAtoms.add(atom);
+    });
+    ringCycles.push(cycle);
+  });
   const incoming = Array(atoms.length).fill(0);
+
+  // Start each ring substituent outside the ring, then continue its chain away
+  // from the attachment point instead of letting it cross the ring interior.
+  const ringSubstituentQueue = [];
+  ringCycles.forEach(cycle => {
+    const center = cycle.reduce((sum, atom) => ({ x: sum.x + coords[atom].x / cycle.length, y: sum.y + coords[atom].y / cycle.length }), { x: 0, y: 0 });
+    cycle.forEach(atom => {
+      const external = adjacency[atom].filter(neighbor => !fixedRingAtoms.has(neighbor) && !coords[neighbor]);
+      if (!external.length) return;
+      const radialX = coords[atom].x - center.x;
+      const radialY = coords[atom].y - center.y;
+      const baseAngle = Math.atan2(radialY, radialX);
+      external.forEach((neighbor, index) => {
+        const angle = baseAngle + (index - (external.length - 1) / 2) * 0.8;
+        coords[neighbor] = { x: coords[atom].x + Math.cos(angle) * 1.55, y: coords[atom].y + Math.sin(angle) * 1.55 };
+        incoming[neighbor] = angle;
+        ringSubstituentQueue.push(neighbor);
+      });
+    });
+  });
+  while (ringSubstituentQueue.length) {
+    const parent = ringSubstituentQueue.shift();
+    const children = adjacency[parent].filter(id => !fixedRingAtoms.has(id) && !coords[id]);
+    children.forEach((child, index) => {
+      const spread = (index - (children.length - 1) / 2) * 1.0;
+      const angle = incoming[parent] + spread;
+      coords[child] = { x: coords[parent].x + Math.cos(angle) * 1.55, y: coords[parent].y + Math.sin(angle) * 1.55 };
+      incoming[child] = angle;
+      ringSubstituentQueue.push(child);
+    });
+  }
+
   let componentOffset = 0;
   for (let root = 0; root < atoms.length; root++) {
     if (coords[root]) continue;
-      coords[root] = { x: componentOffset, y: 0 };
+    coords[root] = { x: componentOffset, y: 0 };
     const queue = [root];
     while (queue.length) {
       const parent = queue.shift();
@@ -1059,14 +1180,52 @@ function generate3DFromSmiles(smiles = '') {
     componentOffset = Math.max(...coords.filter(Boolean).map(point => point.x)) + 2;
   }
 
+  // Relax the initial SMILES traversal into a readable graph layout. Bond
+  // springs preserve connectivity while short-range repulsion spreads atoms
+  // apart, which is especially important for aromatic rings and long inputs.
+  const velocities = coords.map(() => ({ x: 0, y: 0 }));
+  const bondPairs = new Set(bonds.map(([a, b]) => `${Math.min(a, b)}:${Math.max(a, b)}`));
+  for (let iteration = 0; iteration < 260; iteration++) {
+    const forces = coords.map(() => ({ x: 0, y: 0 }));
+    for (const [a, b] of bonds) {
+      let dx = coords[b].x - coords[a].x, dy = coords[b].y - coords[a].y;
+      let distance = Math.hypot(dx, dy);
+      if (distance < 1e-6) { dx = 0.01 * (b - a); dy = 1; distance = Math.hypot(dx, dy); }
+      const force = (distance - 1.55) * 0.055;
+      const fx = dx / distance * force, fy = dy / distance * force;
+      forces[a].x += fx; forces[a].y += fy;
+      forces[b].x -= fx; forces[b].y -= fy;
+    }
+    for (let a = 0; a < coords.length; a++) {
+      for (let b = a + 1; b < coords.length; b++) {
+        if (bondPairs.has(`${a}:${b}`)) continue;
+        let dx = coords[b].x - coords[a].x, dy = coords[b].y - coords[a].y;
+        let distance = Math.hypot(dx, dy);
+        if (distance >= 2.15) continue;
+        if (distance < 1e-6) { dx = Math.cos(a * 2.4 + b); dy = Math.sin(a + b * 0.7); distance = Math.hypot(dx, dy); }
+        const force = (2.15 - distance) * 0.075;
+        const fx = dx / distance * force, fy = dy / distance * force;
+        forces[a].x -= fx; forces[a].y -= fy;
+        forces[b].x += fx; forces[b].y += fy;
+      }
+    }
+    const cooling = 1 - iteration / 320;
+    coords.forEach((point, index) => {
+      if (fixedRingAtoms.has(index)) return;
+      velocities[index].x = (velocities[index].x + forces[index].x) * 0.78 * cooling;
+      velocities[index].y = (velocities[index].y + forces[index].y) * 0.78 * cooling;
+      point.x += velocities[index].x;
+      point.y += velocities[index].y;
+    });
+  }
+
   const minX = Math.min(...coords.map(point => point.x)), maxX = Math.max(...coords.map(point => point.x));
   const minY = Math.min(...coords.map(point => point.y)), maxY = Math.max(...coords.map(point => point.y));
-  const scale = 8 / Math.max(1, maxX - minX, maxY - minY);
   const atoms3D = atoms.map((atom, index) => ({
     ...atom,
-    x: (coords[index].x - (minX + maxX) / 2) * scale,
-    y: (coords[index].y - (minY + maxY) / 2) * scale,
-    z: Math.sin(index * 2.4) * 0.12
+    x: coords[index].x - (minX + maxX) / 2,
+    y: coords[index].y - (minY + maxY) / 2,
+    z: fixedRingAtoms.has(index) ? 0 : Math.sin(index * 2.4) * 0.12
   }));
   return { atoms3D, bonds3D: bonds };
 }
@@ -1082,7 +1241,7 @@ function updatePolymerView(data) {
     txt.textContent = tr('csvMatch');
     badge.className = 'text-[11px] font-mono px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-800 flex items-center space-x-1';
   } else {
-    src.textContent = data.modelPredicted ? `${tr('propSource')} ${tr('modelApi')}` : tr('illustrativeLabel');
+    src.textContent = data.modelPredicted ? `${tr('propSource')} ${tr('predictionResult')}` : tr('illustrativeLabel');
     src.className = 'text-slate-400 font-mono';
     txt.textContent = data.modelPending ? tr('modelUnavailable') : data.modelPredicted ? tr('modelPrediction') : tr('ready');
     badge.className = 'text-[11px] font-mono px-2 py-0.5 rounded-full bg-slate-900 text-slate-300 border border-slate-700 flex items-center space-x-1';
@@ -1096,7 +1255,7 @@ function updatePolymerView(data) {
     if (Number.isFinite(n)) {
       valueEl.textContent = `${n.toFixed(1)} °C`;
       kelvinEl.textContent = `${(n + 273.15).toFixed(2)} K`;
-      sourceEl.textContent = propertySource === 'Model API' ? tr('modelApi') : propertySource === 'Not recorded' ? tr('notRecorded') : propertySource || (data.isCsvSource ? tr('csvRecord') : tr('modelApi'));
+      sourceEl.textContent = propertySource === 'Model API' ? tr('predictionResult') : propertySource === 'Not recorded' ? tr('notRecorded') : propertySource || (data.isCsvSource ? tr('csvRecord') : tr('predictionResult'));
     } else {
       valueEl.textContent = tr('notAvailable');
       kelvinEl.textContent = data.modelPending ? tr('modelNotConnected') : data.isCsvSource ? tr('noValueCsv') : tr('noPrediction');
@@ -1164,8 +1323,8 @@ function escapeHtml(str) {
         exportTitle: "Export polymer properties as JSON", repeatLinkHint: "Asterisks indicate repeat-unit linkages", resetCamera: "Reset Camera",
         modelDisclaimerTitle: "Important: model estimates",
         modelDisclaimer: "Model predictions are estimates and may be inaccurate. The model does not account for whether the polymer can form the phase associated with the predicted thermal transition.",
-        terminalPoints: "Terminal points", csvRecord: "CSV record", modelApi: "Model API",
-        modelPrediction: "Model API prediction", modelUnavailable: "Model API unavailable", ready: "Ready",
+        terminalPoints: "Terminal points", csvRecord: "CSV record", modelApi: "Model API", predictionResult: "Prediction result",
+        modelPrediction: "Prediction result", modelUnavailable: "Model API unavailable", ready: "Ready",
         csvMatch: "CSV record", noValueCsv: "No value recorded in CSV", noPrediction: "No prediction", notAvailable: "Not available",
         notRecorded: "Not recorded", pendingModel: "Pending model API", modelNotConnected: "Model API not connected",
         illustrativeSuffix: "illustrative repeat-unit schematic", noCsvFound: "No CSV record found for", noCsvStructureHint: "Enter a repeat-unit structure to request a model prediction.",
@@ -1190,8 +1349,8 @@ function escapeHtml(str) {
         exportTitle: "Xuất các tính chất polyme dưới dạng JSON", repeatLinkHint: "Dấu hoa thị biểu thị vị trí nối giữa các mắt xích", resetCamera: "Đặt lại góc nhìn",
         modelDisclaimerTitle: "Lưu ý quan trọng: kết quả chỉ là ước tính",
         modelDisclaimer: "Các giá trị do mô hình dự đoán chỉ là ước tính và có thể không chính xác. Mô hình không xét đến khả năng polyme hình thành pha tương ứng với chuyển biến nhiệt được dự đoán.",
-        terminalPoints: "điểm nối mắt xích", csvRecord: "Bản ghi CSV", modelApi: "API mô hình",
-        modelPrediction: "Dự đoán từ API mô hình", modelUnavailable: "API mô hình không khả dụng", ready: "Sẵn sàng",
+        terminalPoints: "điểm nối mắt xích", csvRecord: "Bản ghi CSV", modelApi: "API mô hình", predictionResult: "Kết quả dự đoán",
+        modelPrediction: "Kết quả dự đoán", modelUnavailable: "API mô hình không khả dụng", ready: "Sẵn sàng",
         csvMatch: "Bản ghi CSV", noValueCsv: "CSV không có dữ liệu cho giá trị này", noPrediction: "Chưa có dự đoán", notAvailable: "Không có dữ liệu",
         notRecorded: "Không được ghi nhận", pendingModel: "Đang chờ API mô hình", modelNotConnected: "Chưa kết nối API mô hình",
         illustrativeSuffix: "sơ đồ mắt xích minh họa", noCsvFound: "Không tìm thấy bản ghi CSV cho", noCsvStructureHint: "Nhập cấu trúc mắt xích để yêu cầu mô hình dự đoán.",
