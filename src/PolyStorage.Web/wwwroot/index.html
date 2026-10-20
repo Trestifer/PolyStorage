@@ -201,7 +201,7 @@
                 <span data-i18n="copyBtn">Copy</span>
               </button>
             </div>
-            <textarea id="psmilesInput" rows="2" oninput="handlePsmilesManualEdit(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 font-mono text-sm text-cyan-300 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition resize-none shadow-inner" placeholder="e.g. *CC(*)c1ccccc1" data-i18n-ph="structurePlaceholder"></textarea>
+            <textarea id="psmilesInput" rows="2" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" oninput="handlePsmilesManualEdit(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 font-mono text-sm text-cyan-300 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition resize-none shadow-inner" placeholder="e.g. *CC(*)c1ccccc1" data-i18n-ph="structurePlaceholder"></textarea>
             <div id="smilesValidity" class="mt-1 flex items-center justify-between text-[11px] text-emerald-400 font-mono">
               <span id="sourceIndicatorTag">Source: polymer_master.csv</span>
               <span id="starCountTag">2 Terminal Points (*)</span>
@@ -524,8 +524,9 @@
         'P': 0xf97316, 'S': 0xeab308, 'B': 0xf472b6
       };
 
-      const sphereGeo = new THREE.SphereGeometry(0.48, 32, 32);
-      const linkSphereGeo = new THREE.SphereGeometry(0.38, 24, 24);
+      const atomRadius = Math.max(0.24, 0.48 * Math.min(1, Math.sqrt(18 / atoms.length)));
+      const sphereGeo = new THREE.SphereGeometry(atomRadius, 32, 32);
+      const linkSphereGeo = new THREE.SphereGeometry(atomRadius * 0.8, 24, 24);
 
       // Render Atoms
       atoms.forEach((atom, idx) => {
@@ -565,7 +566,8 @@
         const len = dir.length();
         const mid = new THREE.Vector3().addVectors(p1, p2).multiplyScalar(0.5);
 
-        const cylinderGeo = new THREE.CylinderGeometry(0.09, 0.09, len, 12);
+        const bondRadius = Math.max(0.045, 0.09 * (atomRadius / 0.48));
+        const cylinderGeo = new THREE.CylinderGeometry(bondRadius, bondRadius, len, 12);
         const cylinderCount = order === 'double' || order === 'aromatic' ? 2 : order === 'triple' ? 3 : 1;
         const perpendicular = new THREE.Vector3().crossVectors(dir.clone().normalize(), new THREE.Vector3(0, 0, 1)).normalize();
         for (let k = 0; k < cylinderCount; k++) {
@@ -1097,6 +1099,9 @@ function generate3DFromSmiles(smiles = '') {
   const ringCycles = [];
 
   // Ring closures identify the exact cycle in the parsed molecular graph.
+  // Sort by ring opening order because SMILES may close an outer ring only
+  // after describing branches that contain later rings.
+  ringClosures.sort(([a], [b]) => a - b);
   // Lay each cycle out as a regular polygon so force relaxation cannot fold
   // the ring or collapse vertices on top of one another.
   ringClosures.forEach(([start, end]) => {
@@ -1119,9 +1124,10 @@ function generate3DFromSmiles(smiles = '') {
     if (cycle.length < 3 || cycle.some(atom => fixedRingAtoms.has(atom))) return;
 
     const radius = 1.55 / (2 * Math.sin(Math.PI / cycle.length));
+    const ringCenterX = (ringCycles.length - (ringClosures.length - 1) / 2) * 6.3;
     cycle.forEach((atom, index) => {
       const angle = Math.PI + (2 * Math.PI * index) / cycle.length;
-      coords[atom] = { x: radius * Math.cos(angle), y: radius * Math.sin(angle) };
+      coords[atom] = { x: ringCenterX + radius * Math.cos(angle), y: radius * Math.sin(angle) };
       fixedRingAtoms.add(atom);
     });
     ringCycles.push(cycle);
