@@ -51,9 +51,19 @@ app.MapGet("/api/polymers/lookup", async (string? query, PolymerService svc) =>
 app.MapPost("/api/polymers/resolve", async (PolymerResolveRequest request, PolymerService svc, ModelApiClient modelApi, CancellationToken cancellationToken) =>
 {
     await svc.EnsureDataLoadedAsync();
-    var lookup = request.Query ?? request.PSMILES ?? request.SMILES ?? string.Empty;
-    var match = svc.FindMatch(lookup);
-
+    var searchQuery = request.Query?.Trim();
+    var repeatUnit = !string.IsNullOrWhiteSpace(request.PSMILES) ? request.PSMILES.Trim() : request.SMILES?.Trim();
+    var hasSearchQuery = !string.IsNullOrWhiteSpace(searchQuery);
+    var queryLooksLikeSmiles = hasSearchQuery && PolymerService.LooksLikeSmiles(searchQuery!);
+    var structureWasSearchedAsQuery = hasSearchQuery
+        && !string.IsNullOrWhiteSpace(repeatUnit)
+        && string.Equals(searchQuery, repeatUnit, StringComparison.OrdinalIgnoreCase);
+    var isStructureQuery = queryLooksLikeSmiles || structureWasSearchedAsQuery;
+    var lookup = hasSearchQuery ? searchQuery! : repeatUnit ?? string.Empty;
+    var exactStructure = queryLooksLikeSmiles ? searchQuery : repeatUnit;
+    var match = hasSearchQuery && !isStructureQuery
+        ? svc.FindMatch(searchQuery!)
+        : svc.FindExactMatch(exactStructure ?? lookup);
     if (match is not null)
     {
         // Preserve every value already recorded in the CSV. Ask the model only to fill missing properties.
@@ -91,7 +101,14 @@ app.MapPost("/api/polymers/resolve", async (PolymerResolveRequest request, Polym
         return Results.Ok(new { found = true, source = "CSV", polymer = match });
     }
 
-    var repeatUnit = !string.IsNullOrWhiteSpace(request.PSMILES) ? request.PSMILES : request.SMILES;
+    if (queryLooksLikeSmiles)
+    {
+        repeatUnit = searchQuery;
+    }
+    else if (hasSearchQuery && !isStructureQuery)
+    {
+        repeatUnit = null;
+    }
     if (string.IsNullOrWhiteSpace(repeatUnit))
     {
         return Results.BadRequest(new { error = "No CSV match. Enter a PSMILES or SMILES repeat-unit string for model prediction." });
@@ -99,7 +116,7 @@ app.MapPost("/api/polymers/resolve", async (PolymerResolveRequest request, Polym
 
     try
     {
-        var predictions = await modelApi.PredictAsync(request.PSMILES, request.SMILES, cancellationToken);
+        var predictions = await modelApi.PredictAsync(repeatUnit, null, cancellationToken);
         return Results.Ok(new
         {
             found = false,
@@ -341,17 +358,29 @@ public class PolymerService
         ).Take(limit).ToList();
     }
 
+    public static bool LooksLikeSmiles(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input)) return false;
+        return Regex.IsMatch(input.Trim(), @"^(?:Cl|Br|[BCNOPSFIH]|[bcnops]|\*|\[[^\]]+\]|[=#:/\\().\-0-9%])+$");
+    }
+    public PolymerRecord? FindExactMatch(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input)) return null;
+        input = input.Trim();
+
+        return _records.FirstOrDefault(r =>
+            string.Equals(r.PolymerName, input, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(r.PSMILES, input, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(r.SMILES, input, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(r.PolymerId, input, StringComparison.OrdinalIgnoreCase));
+    }
+
     public PolymerRecord? FindMatch(string input)
     {
         if (string.IsNullOrWhiteSpace(input)) return null;
         input = input.Trim();
 
-        // Exact matches
-        var exact = _records.FirstOrDefault(r =>
-            string.Equals(r.PolymerName, input, StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(r.PSMILES, input, StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(r.SMILES, input, StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(r.PolymerId, input, StringComparison.OrdinalIgnoreCase));
+        var exact = FindExactMatch(input);
         if (exact != null) return exact;
 
         // Allow partial lookup for human-readable names and IDs, but never match a

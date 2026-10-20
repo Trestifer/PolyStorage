@@ -948,6 +948,8 @@
       const q = document.getElementById('polymerSearchInput').value.trim();
       const input = document.getElementById('psmilesInput').value.trim();
       const query = q || input;
+      // Search and direct structure entry are separate modes; ignore stale structure text during a name search.
+      const submittedStructure = q ? '' : input;
       if (!query) { showToast(tr('enterQuery')); return; }
 
       const btn = document.getElementById('predictBtn');
@@ -958,7 +960,7 @@
         const response = await fetch('/api/polymers/resolve', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ query, PSMILES: input || null })
+          body: JSON.stringify({ query: q || null, PSMILES: submittedStructure || null })
         });
         const result = await response.json();
         if (response.status === 400) {
@@ -974,7 +976,7 @@
           showToast(tr('modelLoaded'));
         }
       } catch (e) {
-        showModelPending(query, input);
+        showModelPending(query, submittedStructure || input);
         showToast(tr('modelFailed'));
       } finally {
         btn.disabled = false;
